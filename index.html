@@ -73,16 +73,33 @@
                 <p class="text-slate-500 mt-2 text-sm" id="init-status">驗證使用者身分中</p>
             </div>
 
+            <div id="view-sync" class="hidden-view flex-1 flex flex-col items-center justify-center text-center">
+                <i class="fa-solid fa-arrows-rotate loader text-5xl text-primary mb-6"></i>
+                <h2 class="text-2xl font-bold text-slate-700 mb-2">正在同步資料庫</h2>
+                <p class="text-slate-500 mb-6 max-w-md">系統正在將檔案中的資料與 Firebase 進行比對，這可能需要幾秒鐘的時間，請稍候...</p>
+                
+                <div class="w-full max-w-md bg-slate-100 rounded-full h-3 mb-2 overflow-hidden">
+                    <div id="sync-progress-bar" class="bg-primary h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-sm font-mono text-slate-400" id="sync-status-text">準備中...</p>
+            </div>
+
+            <!-- 新增：獨立的上傳視圖 -->
             <div id="view-upload" class="hidden-view flex-1 flex flex-col">
-                <div class="flex items-center mb-4">
-                    <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">1</div>
-                    <h2 class="text-xl font-semibold">上傳您的字典檔以進行比對</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                        <h2 class="text-xl font-semibold">上傳您的字典檔以進行比對</h2>
+                    </div>
+                    <button id="btn-back-home" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center shadow-sm">
+                        <i class="fa-solid fa-house mr-2"></i>回到首頁
+                    </button>
                 </div>
                 <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-6 text-sm border border-blue-100">
                     <i class="fa-solid fa-circle-info mr-2"></i>系統將會讀取您上傳的檔案，並與雲端資料庫比對。若發現雲端缺少的新字詞，會自動補齊並同步。
                 </div>
                 
-                <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center cursor-pointer hover:border-primary hover:bg-blue-50/50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
+                <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-blue-50/50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
                     <input type="file" id="file-input" class="hidden" accept=".yaml,.txt,.dict">
                     <i class="fa-solid fa-file-arrow-up text-5xl text-slate-400 mb-4 drop-zone-icon"></i>
                     <p class="text-lg font-medium text-slate-600 mb-1">點擊或拖曳字典檔至此</p>
@@ -99,26 +116,19 @@
                 </div>
             </div>
 
-            <div id="view-sync" class="hidden-view flex-1 flex flex-col items-center justify-center text-center">
-                <i class="fa-solid fa-arrows-rotate loader text-5xl text-primary mb-6"></i>
-                <h2 class="text-2xl font-bold text-slate-700 mb-2">正在同步資料庫</h2>
-                <p class="text-slate-500 mb-6 max-w-md">系統正在將檔案中的資料與 Firebase 進行比對，這可能需要幾秒鐘的時間，請稍候...</p>
-                
-                <div class="w-full max-w-md bg-slate-100 rounded-full h-3 mb-2 overflow-hidden">
-                    <div id="sync-progress-bar" class="bg-primary h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <p class="text-sm font-mono text-slate-400" id="sync-status-text">準備中...</p>
-            </div>
-
             <div id="view-manage" class="hidden-view flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center">
-                        <div class="bg-secondary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">2</div>
-                        <h2 class="text-xl font-semibold">搜尋與調整順序</h2>
-                    </div>
+                    <button id="btn-go-to-upload" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center text-sm">
+                        <i class="fa-solid fa-file-arrow-up mr-2"></i>上傳 / 同步字典檔
+                    </button>
                     <div class="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
                         <i class="fa-solid fa-database text-green-500 mr-1"></i>已連線，共 <span id="total-words-count" class="font-bold">0</span> 個字詞
                     </div>
+                </div>
+
+                <div class="flex items-center mb-4">
+                    <div class="bg-secondary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                    <h2 class="text-xl font-semibold">搜尋與調整順序</h2>
                 </div>
 
                 <div class="flex gap-3 mb-4">
@@ -220,13 +230,13 @@
             if (type === 'success') { bgColor = 'bg-emerald-800'; icon = 'fa-circle-check text-emerald-400'; }
             else if (type === 'error') { bgColor = 'bg-red-800'; icon = 'fa-circle-xmark text-red-400'; }
 
-            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center toast-enter pointer-events-auto`;
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center toast-enter pointer-events-auto z-50`;
             toast.innerHTML = `<i class="fa-solid ${icon} mr-3 text-lg"></i><span>${message}</span>`;
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => {
                 toast.classList.replace('toast-enter', 'toast-leave');
                 toast.addEventListener('animationend', () => toast.remove());
-            }, 3000);
+            }, 4500); // 延長提示顯示時間，方便看清楚錯誤
         }
 
         async function initSystem() {
@@ -240,25 +250,49 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                try {
-                    if (initialToken) {
-                        initStatus.textContent = "使用自訂憑證登入中...";
-                        await signInWithCustomToken(auth, initialToken);
-                    } else {
-                        initStatus.textContent = "匿名登入中...";
+                // 檢查瀏覽器是否已經有登入過的 session，避免一直重置匿名 ID
+                let currentUser = await new Promise((resolve) => {
+                    const unsubscribe = auth.onAuthStateChanged(user => {
+                        unsubscribe();
+                        resolve(user);
+                    });
+                });
+
+                if (!currentUser) {
+                    try {
+                        if (initialToken) {
+                            initStatus.textContent = "使用自訂憑證登入中...";
+                            await signInWithCustomToken(auth, initialToken);
+                        } else {
+                            initStatus.textContent = "建立匿名登入中...";
+                            await signInAnonymously(auth);
+                        }
+                    } catch (authError) {
+                        console.warn("憑證不符 (可能使用了自訂的 Firebase 專案)，嘗試切換為匿名登入...", authError);
+                        initStatus.textContent = "切換為匿名登入中...";
                         await signInAnonymously(auth);
                     }
-                } catch (authError) {
-                    console.warn("憑證不符 (可能使用了自訂的 Firebase 專案)，嘗試切換為匿名登入...", authError);
-                    initStatus.textContent = "切換為匿名登入中...";
-                    await signInAnonymously(auth);
+                    currentUser = auth.currentUser;
+                } else {
+                    initStatus.textContent = "載入既有身分中...";
                 }
                 
-                if (!auth.currentUser) throw new Error("認證失敗");
-                userId = auth.currentUser.uid;
+                if (!currentUser) throw new Error("認證失敗");
+                userId = currentUser.uid;
+                console.log("目前登入的 User ID:", userId); // 供開發者在 F12 Console 除錯確認身分
                 
                 // 登入成功後，檢查雲端是否已有資料
                 await checkCloudData();
+
+                // 綁定上傳區塊切換與首頁按鈕
+                const btnGoToUpload = document.getElementById('btn-go-to-upload');
+                if (btnGoToUpload) {
+                    btnGoToUpload.addEventListener('click', () => switchView('upload'));
+                }
+                const btnBackHome = document.getElementById('btn-back-home');
+                if (btnBackHome) {
+                    btnBackHome.addEventListener('click', () => switchView('manage'));
+                }
 
             } catch (error) {
                 console.error("Auth error:", error);
@@ -273,19 +307,29 @@
                 const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
                 const chunksSnapshot = await getDocs(chunksRef);
                 
+                await loadCloudData(chunksSnapshot);
+
+                // 將雲端資料複製到記憶體中供搜尋使用
+                memoryDictionary = {};
+                for (const [code, words] of Object.entries(cloudDictionary)) {
+                    memoryDictionary[code] = [...words];
+                }
+                
+                updateTotalCount();
+
                 if (chunksSnapshot.empty) {
-                    // 雲端完全沒資料，要求上傳
+                    // 雲端完全沒資料，切換到上傳頁面
                     switchView('upload');
+                    showToast("雲端尚無資料，請先上傳字典檔", "info");
                 } else {
-                    // 雲端已有資料，直接載入並跳過上傳
-                    await loadCloudData(chunksSnapshot);
                     switchView('manage');
-                    updateTotalCount();
                     showToast("已成功載入雲端設定", "success");
                 }
             } catch (error) {
-                showToast("讀取雲端資料失敗", "error");
-                switchView('upload'); // 退回上傳畫面
+                console.error("Firebase 資料讀取失敗:", error);
+                // 顯示精確的錯誤原因 (例如 Firebase Rules 被阻擋)
+                showToast("雲端讀取失敗，請檢查資料庫規則 (Rules) 或連線狀態：" + error.message, "error");
+                switchView('upload'); // 發生錯誤時退回上傳頁面，避免停在 0 個字詞的異常畫面
             }
         }
 
@@ -398,7 +442,7 @@
             } catch (error) {
                 console.error("Sync error:", error);
                 showToast("同步過程中發生錯誤", "error");
-                switchView('upload');
+                switchView('manage');
             }
         });
 
