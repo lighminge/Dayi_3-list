@@ -140,6 +140,16 @@
                     </div>
                 </div>
                 
+                <!-- 新增：多重按鍵碼選擇器 -->
+                <div id="multi-code-selector" class="hidden-view bg-slate-50 border border-slate-200 rounded-xl p-8 text-center flex-1 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-code-branch text-5xl text-primary mb-4 opacity-80"></i>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2" id="multi-code-title">字元有多個對應的按鍵碼</h3>
+                    <p class="text-slate-500 mb-6">在大易輸入法中，同一個字可能會有 2碼 或 3碼 等多種打法。<br>請選擇您要編輯哪一個按鍵碼的排序：</p>
+                    <div id="multi-code-buttons" class="flex flex-wrap justify-center gap-3 max-w-2xl overflow-y-auto max-h-[250px]">
+                        <!-- 動態生成按鈕 -->
+                    </div>
+                </div>
+
                 <div id="empty-state" class="text-center py-16 bg-slate-50 border border-slate-200 rounded-xl text-slate-400 flex-1 flex flex-col items-center justify-center">
                     <i class="fa-solid fa-keyboard text-5xl mb-4 opacity-30"></i>
                     <p class="text-lg">請輸入查詢條件來開始調整順序</p>
@@ -230,11 +240,17 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                if (initialToken) {
-                    initStatus.textContent = "使用自訂憑證登入中...";
-                    await signInWithCustomToken(auth, initialToken);
-                } else {
-                    initStatus.textContent = "匿名登入中...";
+                try {
+                    if (initialToken) {
+                        initStatus.textContent = "使用自訂憑證登入中...";
+                        await signInWithCustomToken(auth, initialToken);
+                    } else {
+                        initStatus.textContent = "匿名登入中...";
+                        await signInAnonymously(auth);
+                    }
+                } catch (authError) {
+                    console.warn("憑證不符 (可能使用了自訂的 Firebase 專案)，嘗試切換為匿名登入...", authError);
+                    initStatus.textContent = "切換為匿名登入中...";
                     await signInAnonymously(auth);
                 }
                 
@@ -342,15 +358,15 @@
                 document.getElementById('sync-progress-bar').style.width = "20%";
                 
                 const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
-                const chunksSnapshot = await getDocs(chunksRef);
-                
-                await loadCloudData(chunksSnapshot);
-                
-                document.getElementById('sync-status-text').textContent = "正在比對並補齊資料...";
+                document.getElementById('sync-status-text').textContent = "正在比تدائي補齊資料...";
                 document.getElementById('sync-progress-bar').style.width = "50%";
 
                 // 2. 進行合併 (以雲端排序為主，把檔案裡有但雲端沒有的字加進去)
-                memoryDictionary = { ...cloudDictionary };
+                // 修正物件深拷貝邏輯，避免影響到雲端暫存檔
+                memoryDictionary = {};
+                for (const [code, words] of Object.entries(cloudDictionary)) {
+                    memoryDictionary[code] = [...words];
+                }
                 
                 for (const [code, words] of Object.entries(fileDictionary)) {
                     if (!memoryDictionary[code]) {
@@ -459,41 +475,79 @@
             const input = searchInput.value.trim();
             if (!input) { showToast('請輸入查詢內容', 'error'); return; }
 
-            // 判斷是字還是碼
-            let targetCode = input;
-            let foundByWord = false;
+            let matchedCodes = [];
+            let isCodeMatch = false;
 
-            // 先假設是碼，查查看有沒有
-            if (!memoryDictionary[input]) {
-                // 如果沒有這個碼，反查是不是中文字
+            // 1. 檢查是不是直接輸入了按鍵碼
+            if (memoryDictionary[input]) {
+                matchedCodes.push(input);
+                isCodeMatch = true;
+            }
+
+            // 2. 檢查是不是輸入了中文字 (找出「所有」包含此字的按鍵碼)
+            if (!isCodeMatch) {
                 for (const [code, words] of Object.entries(memoryDictionary)) {
                     if (words.includes(input)) {
-                        targetCode = code;
-                        foundByWord = true;
-                        break;
+                        matchedCodes.push(code);
                     }
                 }
             }
 
-            if (!memoryDictionary[targetCode]) {
+            // 先隱藏所有視圖
+            emptyState.classList.add('hidden-view');
+            listContainer.classList.add('hidden-view');
+            searchHint.classList.add('hidden');
+            const multiCodeSelector = document.getElementById('multi-code-selector');
+            if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
+
+            if (matchedCodes.length === 0) {
                 emptyState.classList.remove('hidden-view');
-                listContainer.classList.add('hidden-view');
-                searchHint.classList.add('hidden');
                 showToast(`找不到與「${input}」相關的字或碼`, 'error');
                 return;
             }
 
-            currentSearchCode = targetCode;
-            
-            if (foundByWord) {
-                searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${targetCode} </span>`;
+            if (matchedCodes.length === 1) {
+                currentSearchCode = matchedCodes[0];
+                if (isCodeMatch) {
+                    searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${currentSearchCode} </span> 的順序`;
+                } else {
+                    searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${currentSearchCode} </span>`;
+                }
+                searchHint.classList.remove('hidden');
+                listContainer.classList.remove('hidden-view');
+                renderList();
             } else {
-                searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${targetCode} </span> 的順序`;
+                // 找到多個按鍵碼！顯示選擇器介面
+                if (!multiCodeSelector) return;
+                
+                document.getElementById('multi-code-title').textContent = `字元「${input}」有多個對應的按鍵碼`;
+                const buttonsContainer = document.getElementById('multi-code-buttons');
+                
+                buttonsContainer.innerHTML = matchedCodes.map(code => {
+                    const previewWords = memoryDictionary[code].slice(0, 4).join(', ') + (memoryDictionary[code].length > 4 ? '...' : '');
+                    return `
+                    <button class="flex flex-col items-center p-4 bg-white border-2 border-blue-100 rounded-xl hover:border-primary hover:bg-blue-50 transition-all shadow-sm text-left w-48" onclick="selectMultiCode('${code}', '${input}')">
+                        <span class="text-2xl font-mono font-bold text-primary mb-2">${code}</span>
+                        <span class="text-xs text-slate-500 w-full truncate text-center" title="${previewWords}">候選: ${previewWords}</span>
+                    </button>
+                    `;
+                }).join('');
+                
+                multiCodeSelector.classList.remove('hidden-view');
             }
-            searchHint.classList.remove('hidden');
-
-            renderList();
         }
+
+        // 綁定於全域供選單按鈕使用
+        window.selectMultiCode = function(selectedCode, word) {
+            const multiCodeSelector = document.getElementById('multi-code-selector');
+            if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
+            
+            currentSearchCode = selectedCode;
+            searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${selectedCode} </span>`;
+            searchHint.classList.remove('hidden');
+            listContainer.classList.remove('hidden-view');
+            renderList();
+        };
 
         function renderList() {
             const words = memoryDictionary[currentSearchCode];
