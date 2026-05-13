@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rime 雲端候選字排序系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Microsoft JhengHei"', 'system-ui', 'sans-serif'],
+                        mono: ['Consolas', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        dark: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loader { animation: spin 1s linear infinite; }
+        
+        .toast-enter { animation: slideInUp 0.3s ease-out forwards; }
+        .toast-leave { animation: fadeOut 0.3s ease-out forwards; }
+        @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        
+        .hidden-view { display: none !important; }
+    </style>
+</head>
+
+<body class="min-h-screen py-10 px-4 text-slate-800 flex flex-col items-center">
+
+    <div class="max-w-4xl w-full glass-panel rounded-2xl p-8 border border-white/50 relative overflow-hidden min-h-[600px] flex flex-col">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-blue-100 blur-3xl opacity-50 z-0 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-green-100 blur-3xl opacity-50 z-0 pointer-events-none"></div>
+
+        <div class="relative z-10 flex-1 flex flex-col">
+            <header class="text-center mb-8 border-b border-slate-100 pb-6">
+                <h1 class="text-3xl font-bold text-dark mb-2">
+                    <i class="fa-solid fa-cloud text-primary mr-2"></i>Rime 雲端候選字排序大師
+                </h1>
+                <p class="text-slate-500">結合 Firebase 雲端同步，永久保存您的專屬選字記憶</p>
+            </header>
+
+            <div id="view-init" class="flex-1 flex flex-col items-center justify-center text-center">
+                <i class="fa-solid fa-circle-notch loader text-4xl text-primary mb-4"></i>
+                <h2 class="text-xl font-semibold text-slate-700">正在連接雲端資料庫...</h2>
+                <p class="text-slate-500 mt-2 text-sm" id="init-status">驗證使用者身分中</p>
+            </div>
+
+            <div id="view-upload" class="hidden-view flex-1 flex flex-col">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                    <h2 class="text-xl font-semibold">上傳您的字典檔以進行比對</h2>
+                </div>
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-6 text-sm border border-blue-100">
+                    <i class="fa-solid fa-circle-info mr-2"></i>系統將會讀取您上傳的檔案，並與雲端資料庫比對。若發現雲端缺少的新字詞，會自動補齊並同步。
+                </div>
+                
+                <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center cursor-pointer hover:border-primary hover:bg-blue-50/50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
+                    <input type="file" id="file-input" class="hidden" accept=".yaml,.txt,.dict">
+                    <i class="fa-solid fa-file-arrow-up text-5xl text-slate-400 mb-4 drop-zone-icon"></i>
+                    <p class="text-lg font-medium text-slate-600 mb-1">點擊或拖曳字典檔至此</p>
+                    <p class="text-sm text-slate-400">支援 .yaml 格式 (例如: dayi3.dict.yaml)</p>
+                </div>
+
+                <div id="file-ready-info" class="hidden-view bg-green-50 border border-green-200 rounded-xl p-6 mt-4 text-center">
+                    <i class="fa-solid fa-file-check text-4xl text-green-500 mb-3"></i>
+                    <p class="text-lg font-bold text-green-800 mb-1" id="file-ready-name">filename.yaml</p>
+                    <p class="text-sm text-green-600 mb-4">檔案解析完成，準備好與雲端資料庫進行同步</p>
+                    <button id="btn-start-sync" class="bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-md flex items-center justify-center mx-auto">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始雲端比對與同步
+                    </button>
+                </div>
+            </div>
+
+            <div id="view-sync" class="hidden-view flex-1 flex flex-col items-center justify-center text-center">
+                <i class="fa-solid fa-arrows-rotate loader text-5xl text-primary mb-6"></i>
+                <h2 class="text-2xl font-bold text-slate-700 mb-2">正在同步資料庫</h2>
+                <p class="text-slate-500 mb-6 max-w-md">系統正在將檔案中的資料與 Firebase 進行比對，這可能需要幾秒鐘的時間，請稍候...</p>
+                
+                <div class="w-full max-w-md bg-slate-100 rounded-full h-3 mb-2 overflow-hidden">
+                    <div id="sync-progress-bar" class="bg-primary h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-sm font-mono text-slate-400" id="sync-status-text">準備中...</p>
+            </div>
+
+            <div id="view-manage" class="hidden-view flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="bg-secondary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                        <h2 class="text-xl font-semibold">搜尋與調整順序</h2>
+                    </div>
+                    <div class="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                        <i class="fa-solid fa-database text-green-500 mr-1"></i>已連線，共 <span id="total-words-count" class="font-bold">0</span> 個字詞
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mb-4">
+                    <input type="text" id="search-input" placeholder="請輸入「要修改的字」或「按鍵碼」..." class="flex-1 px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-lg shadow-sm font-sans">
+                    <button id="btn-search" class="bg-dark hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm flex items-center">
+                        <i class="fa-solid fa-magnifying-glass mr-2"></i>查詢
+                    </button>
+                </div>
+                <div id="search-hint" class="text-sm text-slate-500 mb-4 ml-1 hidden"></div>
+
+                <div id="list-container" class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner flex-1 hidden-view flex flex-col">
+                    <ul id="candidate-list" class="divide-y divide-slate-200 overflow-y-auto max-h-[350px]">
+                        <!-- 列表項目動態生成 -->
+                    </ul>
+                    <div class="bg-slate-100 border-t border-slate-200 p-3 flex justify-end gap-3">
+                        <button id="btn-save-order" class="bg-primary hover:bg-blue-600 text-white px-5 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center text-sm">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>儲存修改至雲端
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="empty-state" class="text-center py-16 bg-slate-50 border border-slate-200 rounded-xl text-slate-400 flex-1 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-keyboard text-5xl mb-4 opacity-30"></i>
+                    <p class="text-lg">請輸入查詢條件來開始調整順序</p>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-200 flex justify-between items-center bg-green-50 p-5 rounded-xl border border-green-100">
+                    <div>
+                        <p class="text-slate-800 font-bold mb-1">完成所有修改了嗎？</p>
+                        <p class="text-sm text-slate-500">匯出包含雲端最新排序的字典檔，放回小狼毫資料夾。</p>
+                    </div>
+                    <button id="btn-export" class="bg-secondary hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-md hover:shadow-lg flex items-center">
+                        <i class="fa-solid fa-download mr-2"></i>匯出字典檔
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'github-dayi3-list';
+        
+        // 使用您專屬的 Firebase 設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAU3AgygNtv5p27t1nDGeBy6CUbczn86o",
+            authDomain: "github-dayi3-list.firebaseapp.com",
+            projectId: "github-dayi3-list",
+            storageBucket: "github-dayi3-list.firebasestorage.app",
+            messagingSenderId: "776687273903",
+            appId: "1:776687273903:web:045bb94c8c070ad6db115a",
+            measurementId: "G-C0DH4DWW1Y"
+        };
+        
+        const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // 系統狀態變數
+        let app, auth, db, userId;
+        let fileHeaders = [];
+        let fileDictionary = {}; // 檔案解析結果
+        let cloudDictionary = {}; // 雲端下載結果
+        let memoryDictionary = {}; // 最終合併結果 (以 Code 為 Key, 裝載 word 陣列)
+        
+        let currentSearchCode = "";
+        let originalFileName = "dayi3.dict.yaml";
+
+        // DOM 元素
+        const views = {
+            init: document.getElementById('view-init'),
+            upload: document.getElementById('view-upload'),
+            sync: document.getElementById('view-sync'),
+            manage: document.getElementById('view-manage')
+        };
+        const initStatus = document.getElementById('init-status');
+        
+        function switchView(viewName) {
+            Object.values(views).forEach(v => v.classList.add('hidden-view'));
+            views[viewName].classList.remove('hidden-view');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            let bgColor = 'bg-slate-800', icon = 'fa-circle-info text-blue-400';
+            if (type === 'success') { bgColor = 'bg-emerald-800'; icon = 'fa-circle-check text-emerald-400'; }
+            else if (type === 'error') { bgColor = 'bg-red-800'; icon = 'fa-circle-xmark text-red-400'; }
+
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center toast-enter pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon} mr-3 text-lg"></i><span>${message}</span>`;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => {
+                toast.classList.replace('toast-enter', 'toast-leave');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
+        }
+
+        async function initSystem() {
+            if (!firebaseConfig) {
+                showToast("未偵測到 Firebase 配置，切換至離線模式", "error");
+                initStatus.textContent = "環境錯誤";
+                return;
+            }
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (initialToken) {
+                    initStatus.textContent = "使用自訂憑證登入中...";
+                    await signInWithCustomToken(auth, initialToken);
+                } else {
+                    initStatus.textContent = "匿名登入中...";
+                    await signInAnonymously(auth);
+                }
+                
+                if (!auth.currentUser) throw new Error("認證失敗");
+                userId = auth.currentUser.uid;
+                
+                // 登入成功後，檢查雲端是否已有資料
+                await checkCloudData();
+
+            } catch (error) {
+                console.error("Auth error:", error);
+                showToast("連線資料庫失敗：" + error.message, "error");
+                initStatus.textContent = "連線失敗";
+            }
+        }
+
+        async function checkCloudData() {
+            initStatus.textContent = "檢查雲端紀錄...";
+            try {
+                const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
+                const chunksSnapshot = await getDocs(chunksRef);
+                
+                if (chunksSnapshot.empty) {
+                    // 雲端完全沒資料，要求上傳
+                    switchView('upload');
+                } else {
+                    // 雲端已有資料，直接載入並跳過上傳
+                    await loadCloudData(chunksSnapshot);
+                    switchView('manage');
+                    updateTotalCount();
+                    showToast("已成功載入雲端設定", "success");
+                }
+            } catch (error) {
+                showToast("讀取雲端資料失敗", "error");
+                switchView('upload'); // 退回上傳畫面
+            }
+        }
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-primary', 'bg-blue-50/50'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-primary', 'bg-blue-50/50'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-blue-50/50');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            originalFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                parseDictionary(e.target.result);
+                dropZone.classList.add('hidden-view');
+                document.getElementById('file-ready-info').classList.remove('hidden-view');
+                document.getElementById('file-ready-name').textContent = originalFileName;
+                showToast('檔案解析完成！', 'success');
+            };
+            reader.onerror = () => showToast('讀取檔案失敗', 'error');
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function parseDictionary(text) {
+            const lines = text.split(/\r?\n/);
+            fileHeaders = [];
+            fileDictionary = {};
+
+            let inHeader = true;
+            for (let line of lines) {
+                const trimmed = line.trim();
+                // 處理檔頭與註解
+                if (inHeader && (trimmed.startsWith('#') || trimmed.startsWith('---') || trimmed.includes('name:') || trimmed.includes('version:') || trimmed.includes('sort:') || trimmed === '...')) {
+                    fileHeaders.push(line);
+                    if (trimmed === '...') inHeader = false; 
+                    continue;
+                }
+                
+                // 處理實際資料：中文字[Tab]代碼
+                if (trimmed !== '') {
+                    const parts = line.split('\t');
+                    if (parts.length >= 2) {
+                        const word = parts[0].trim();
+                        const code = parts[1].trim();
+                        if (!fileDictionary[code]) fileDictionary[code] = [];
+                        if (!fileDictionary[code].includes(word)) {
+                            fileDictionary[code].push(word);
+                        }
+                    } else if (trimmed.startsWith('#')) {
+                        // 檔頭後的註解直接忽略或可存入 metadata，這裡我們簡化處理
+                    }
+                }
+            }
+        }
+
+        document.getElementById('btn-start-sync').addEventListener('click', async () => {
+            switchView('sync');
+            try {
+                // 1. 取得雲端現有資料
+                document.getElementById('sync-status-text').textContent = "正在下載雲端歷史資料...";
+                document.getElementById('sync-progress-bar').style.width = "20%";
+                
+                const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
+                const chunksSnapshot = await getDocs(chunksRef);
+                
+                await loadCloudData(chunksSnapshot);
+                
+                document.getElementById('sync-status-text').textContent = "正在比對並補齊資料...";
+                document.getElementById('sync-progress-bar').style.width = "50%";
+
+                // 2. 進行合併 (以雲端排序為主，把檔案裡有但雲端沒有的字加進去)
+                memoryDictionary = { ...cloudDictionary };
+                
+                for (const [code, words] of Object.entries(fileDictionary)) {
+                    if (!memoryDictionary[code]) {
+                        // 雲端完全沒有這個碼，整組新增
+                        memoryDictionary[code] = [...words];
+                    } else {
+                        // 雲端有這個碼，檢查有沒有漏字
+                        for (const w of words) {
+                            if (!memoryDictionary[code].includes(w)) {
+                                memoryDictionary[code].push(w);
+                            }
+                        }
+                    }
+                }
+
+                // 3. 準備回寫雲端 (將龐大資料分塊儲存)
+                document.getElementById('sync-status-text').textContent = "正在上傳更新至資料庫...";
+                document.getElementById('sync-progress-bar').style.width = "70%";
+                
+                await saveToCloud();
+                
+                document.getElementById('sync-progress-bar').style.width = "100%";
+                setTimeout(() => {
+                    switchView('manage');
+                    updateTotalCount();
+                    showToast("同步完成！", "success");
+                }, 500);
+
+            } catch (error) {
+                console.error("Sync error:", error);
+                showToast("同步過程中發生錯誤", "error");
+                switchView('upload');
+            }
+        });
+
+        // 載入雲端 chunks 轉回 Dictionary 格式
+        async function loadCloudData(snapshot) {
+            cloudDictionary = {};
+            if (snapshot.empty) return;
+            
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.entries) {
+                    // Object.assign(cloudDictionary, data.entries);
+                    for (const [code, words] of Object.entries(data.entries)) {
+                        cloudDictionary[code] = words;
+                    }
+                }
+            });
+
+            // 取得 Headers
+            try {
+                const metaDoc = await getDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'info'));
+                if (metaDoc.exists() && metaDoc.data().headers) {
+                    fileHeaders = metaDoc.data().headers;
+                }
+            } catch(e) { console.warn("No metadata found"); }
+        }
+
+        // 將 Memory 寫入 Firebase (Chunking 處理)
+        async function saveToCloud() {
+            if (!userId) return;
+            
+            // 儲存 Headers
+            if (fileHeaders.length > 0) {
+                await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'info'), { headers: fileHeaders });
+            }
+
+            // 分塊儲存 Data
+            const allEntries = Object.entries(memoryDictionary);
+            const CHUNK_SIZE = 2000; // 每個文檔存 2000 個按鍵碼
+            
+            let chunkPromises = [];
+            for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
+                const chunkSlice = allEntries.slice(i, i + CHUNK_SIZE);
+                const chunkObj = {};
+                chunkSlice.forEach(([c, w]) => { chunkObj[c] = w; });
+                
+                const chunkIndex = Math.floor(i / CHUNK_SIZE);
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'dict_chunks', `chunk_${chunkIndex}`);
+                chunkPromises.push(setDoc(docRef, { entries: chunkObj }));
+            }
+            
+            await Promise.all(chunkPromises);
+        }
+
+        function updateTotalCount() {
+            let count = 0;
+            for (const words of Object.values(memoryDictionary)) {
+                count += words.length;
+            }
+            document.getElementById('total-words-count').textContent = count.toLocaleString();
+        }
+
+        const searchInput = document.getElementById('search-input');
+        const btnSearch = document.getElementById('btn-search');
+        const listContainer = document.getElementById('list-container');
+        const candidateList = document.getElementById('candidate-list');
+        const emptyState = document.getElementById('empty-state');
+        const searchHint = document.getElementById('search-hint');
+
+        btnSearch.addEventListener('click', executeSearch);
+        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(); });
+
+        function executeSearch() {
+            const input = searchInput.value.trim();
+            if (!input) { showToast('請輸入查詢內容', 'error'); return; }
+
+            // 判斷是字還是碼
+            let targetCode = input;
+            let foundByWord = false;
+
+            // 先假設是碼，查查看有沒有
+            if (!memoryDictionary[input]) {
+                // 如果沒有這個碼，反查是不是中文字
+                for (const [code, words] of Object.entries(memoryDictionary)) {
+                    if (words.includes(input)) {
+                        targetCode = code;
+                        foundByWord = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!memoryDictionary[targetCode]) {
+                emptyState.classList.remove('hidden-view');
+                listContainer.classList.add('hidden-view');
+                searchHint.classList.add('hidden');
+                showToast(`找不到與「${input}」相關的字或碼`, 'error');
+                return;
+            }
+
+            currentSearchCode = targetCode;
+            
+            if (foundByWord) {
+                searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${targetCode} </span>`;
+            } else {
+                searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${targetCode} </span> 的順序`;
+            }
+            searchHint.classList.remove('hidden');
+
+            renderList();
+        }
+
+        function renderList() {
+            const words = memoryDictionary[currentSearchCode];
+            emptyState.classList.add('hidden-view');
+            listContainer.classList.remove('hidden-view');
+            candidateList.innerHTML = '';
+
+            words.forEach((word, index) => {
+                const li = document.createElement('li');
+                li.className = "flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors group";
+                
+                const leftDiv = document.createElement('div');
+                leftDiv.className = "flex items-center gap-4";
+                
+                const badge = document.createElement('span');
+                badge.className = "flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-sm border border-slate-200 group-hover:bg-primary group-hover:text-white transition-colors";
+                badge.textContent = index + 1;
+                
+                const wordSpan = document.createElement('span');
+                wordSpan.className = "text-2xl font-bold font-sans text-slate-800";
+                wordSpan.textContent = word;
+
+                const codeSpan = document.createElement('span');
+                codeSpan.className = "font-mono text-slate-400 text-sm ml-2 bg-slate-100 px-2 py-1 rounded";
+                codeSpan.textContent = currentSearchCode;
+
+                leftDiv.appendChild(badge);
+                leftDiv.appendChild(wordSpan);
+                leftDiv.appendChild(codeSpan);
+
+                const rightDiv = document.createElement('div');
+                rightDiv.className = "flex gap-2";
+
+                const btnUp = document.createElement('button');
+                btnUp.className = `w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm border ${index === 0 ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:bg-blue-50 hover:text-primary hover:border-blue-200'}`;
+                btnUp.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+                if (index > 0) btnUp.onclick = () => swapWords(index, index - 1);
+
+                const btnDown = document.createElement('button');
+                btnDown.className = `w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm border ${index === words.length - 1 ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:bg-blue-50 hover:text-primary hover:border-blue-200'}`;
+                btnDown.innerHTML = '<i class="fa-solid fa-arrow-down"></i>';
+                if (index < words.length - 1) btnDown.onclick = () => swapWords(index, index + 1);
+
+                rightDiv.appendChild(btnUp);
+                rightDiv.appendChild(btnDown);
+
+                li.appendChild(leftDiv);
+                li.appendChild(rightDiv);
+                candidateList.appendChild(li);
+            });
+        }
+
+        function swapWords(indexA, indexB) {
+            const words = memoryDictionary[currentSearchCode];
+            const temp = words[indexA];
+            words[indexA] = words[indexB];
+            words[indexB] = temp;
+            renderList();
+        }
+
+        document.getElementById('btn-save-order').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-save-order');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>儲存中...';
+            btn.disabled = true;
+
+            try {
+                // 直接重新呼叫 saveToCloud，利用 chunk 覆蓋機制
+                await saveToCloud();
+                showToast("順序已成功同步至雲端資料庫！", "success");
+            } catch (error) {
+                showToast("儲存失敗", "error");
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('btn-export').addEventListener('click', () => {
+            if (Object.keys(memoryDictionary).length === 0) return;
+
+            let finalContent = "";
+            // 1. 寫入檔頭
+            if (fileHeaders.length > 0) {
+                finalContent += fileHeaders.join('\n') + '\n';
+            } else {
+                // 如果沒有檔頭，給個預設的
+                finalContent += "---\nname: dayi3\nversion: \"1.0\"\nsort: original\n...\n";
+            }
+
+            // 2. 寫入資料區
+            for (const [code, words] of Object.entries(memoryDictionary)) {
+                for (const word of words) {
+                    finalContent += `${word}\t${code}\n`;
+                }
+            }
+
+            const blob = new Blob([finalContent], { type: 'text/yaml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "dayi3.dict.yaml";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast(`已匯出字典檔！請覆蓋至小狼毫資料夾並重新部署。`, 'success');
+        });
+
+        // 啟動系統
+        window.onload = () => {
+            initSystem();
+        };
+
+    </script>
+</body>
+</html>
