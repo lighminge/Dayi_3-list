@@ -132,12 +132,17 @@
                 </div>
 
                 <div class="flex gap-3 mb-4">
-                    <input type="text" id="search-input" placeholder="請輸入「要修改的字」或「按鍵碼」..." class="flex-1 px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-lg shadow-sm font-sans">
+                    <div class="relative flex-1">
+                        <input type="text" id="search-input" placeholder="請輸入「要修改的字」或「按鍵碼」..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-lg shadow-sm font-sans pr-10">
+                        <button id="btn-clear-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden transition-colors" title="清除內容">
+                            <i class="fa-solid fa-circle-xmark text-xl"></i>
+                        </button>
+                    </div>
                     <button id="btn-search" class="bg-dark hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm flex items-center">
                         <i class="fa-solid fa-magnifying-glass mr-2"></i>查詢
                     </button>
                 </div>
-                <div id="search-hint" class="text-sm text-slate-500 mb-4 ml-1 hidden"></div>
+                <div id="search-hint" class="text-sm text-slate-500 mb-4 ml-1 hidden flex flex-wrap items-center"></div>
 
                 <div id="list-container" class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner flex-1 hidden-view flex flex-col">
                     <ul id="candidate-list" class="divide-y divide-slate-200 overflow-y-auto max-h-[350px]">
@@ -506,6 +511,7 @@
         }
 
         const searchInput = document.getElementById('search-input');
+        const btnClearSearch = document.getElementById('btn-clear-search');
         const btnSearch = document.getElementById('btn-search');
         const listContainer = document.getElementById('list-container');
         const candidateList = document.getElementById('candidate-list');
@@ -514,6 +520,29 @@
 
         btnSearch.addEventListener('click', executeSearch);
         searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(); });
+        
+        // 監聽輸入框內容變化，決定是否顯示「清除」按鈕
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value.length > 0) {
+                btnClearSearch.classList.remove('hidden');
+            } else {
+                btnClearSearch.classList.add('hidden');
+            }
+        });
+
+        // 「清除」按鈕的點擊事件：清空輸入、隱藏自己、隱藏列表並重置為空狀態
+        btnClearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            btnClearSearch.classList.add('hidden');
+            searchInput.focus();
+            
+            emptyState.classList.remove('hidden-view');
+            listContainer.classList.add('hidden-view');
+            searchHint.classList.add('hidden');
+            
+            const multiCodeSelector = document.getElementById('multi-code-selector');
+            if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
+        });
 
         function executeSearch() {
             const input = searchInput.value.trim();
@@ -552,10 +581,13 @@
 
             if (matchedCodes.length === 1) {
                 currentSearchCode = matchedCodes[0];
+                const wordsCount = memoryDictionary[currentSearchCode].length;
+                const countBadge = `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
+
                 if (isCodeMatch) {
-                    searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${currentSearchCode} </span> 的順序`;
+                    searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded mx-1"> ${currentSearchCode} </span> 的順序 ${countBadge}`;
                 } else {
-                    searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${currentSearchCode} </span>`;
+                    searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary mx-1">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded mx-1"> ${currentSearchCode} </span> ${countBadge}`;
                 }
                 searchHint.classList.remove('hidden');
                 listContainer.classList.remove('hidden-view');
@@ -587,7 +619,10 @@
             if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
             
             currentSearchCode = selectedCode;
-            searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded"> ${selectedCode} </span>`;
+            const wordsCount = memoryDictionary[currentSearchCode].length;
+            const countBadge = `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
+            
+            searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary mx-1">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded mx-1"> ${selectedCode} </span> ${countBadge}`;
             searchHint.classList.remove('hidden');
             listContainer.classList.remove('hidden-view');
             renderList();
