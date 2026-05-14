@@ -351,23 +351,27 @@
                 <!-- 辭庫內容1: 查詢與修改 -->
                 <div id="content-edit-phrase" class="flex flex-col flex-1">
                     <div class="flex gap-3 mb-4">
-                        <select id="select-phrase-search-type" class="whiteboard-input bg-white font-bold text-slate-700 cursor-pointer text-lg">
-                            <option value="word">找辭庫文字</option>
-                            <option value="code">找按鍵碼</option>
-                        </select>
                         <div class="relative flex-1">
-                            <input type="text" id="input-edit-phrase" placeholder="請輸入辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
+                            <input type="text" id="input-edit-phrase" placeholder="過濾辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
                             <button id="btn-clear-phrase-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-marker-red hidden transition-colors" title="清除內容">
                                 <i class="fa-solid fa-eraser text-2xl"></i>
                             </button>
                         </div>
-                        <button id="btn-find-phrases" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找找看</button>
                     </div>
                     
-                    <div id="edit-phrase-results" class="flex-1 bg-white border-2 border-slate-300 rounded-xl p-4 overflow-y-auto flex flex-col gap-3">
-                        <div class="h-full flex flex-col items-center justify-center text-slate-400">
-                            <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
-                            <p class="font-bold">請輸入辭庫文字或按鍵碼進行查詢</p>
+                    <div id="phrase-list-container" class="flex-1 bg-white border-2 border-slate-300 rounded-xl overflow-hidden flex flex-col">
+                        <div id="edit-phrase-results" class="flex-1 p-2 overflow-y-auto flex flex-col">
+                            <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
+                                <p class="font-bold">載入中...</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 border-t-2 border-slate-300 p-3 flex justify-between items-center px-4 md:px-6">
+                            <span class="text-sm font-bold text-slate-500" id="phrase-page-info">第 1 頁 / 共 1 頁</span>
+                            <div class="flex gap-2">
+                                <button id="btn-phrase-prev" class="marker-btn bg-white text-marker-black px-3 md:px-4 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
+                                <button id="btn-phrase-next" class="marker-btn bg-white text-marker-black px-3 md:px-4 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed">下一頁 <i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -394,7 +398,7 @@
                 <!-- 辭庫內容3: 匯入辭庫檔 -->
                 <div id="content-upload-phrase" class="hidden-view flex flex-col flex-1">
                     <div class="sticky-note p-4 rounded-lg mb-6 text-sm text-slate-800 font-bold">
-                        <i class="fa-solid fa-thumbtack text-marker-purple mr-2"></i>請上傳小狼毫目前使用的「自訂辭庫檔」(例如 custom_phrase.txt 或 .dict.yaml)。合併後可獨立管理。
+                        <i class="fa-solid fa-thumbtack text-marker-purple mr-2"></i>請至「小狼毫的用戶辭典管理」中匯出您的自訂辭庫檔（通常為 custom_phrase.txt 或 .yaml 格式），並上傳至此處進行合併。
                     </div>
                     <div id="phrase-drop-zone" class="border-4 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-marker-purple hover:bg-purple-50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
                         <input type="file" id="phrase-file-input" class="hidden" accept=".yaml,.txt,.dict">
@@ -495,6 +499,8 @@
         let filePhraseDictionary = {};
         let phraseDictionary = {};
         let originalPhraseFileName = "custom_phrase.yaml";
+        let currentPhrasePage = 1;
+        const PHRASES_PER_PAGE = 20;
         
         let isOfflineMode = false; 
         
@@ -1303,6 +1309,7 @@
                 editBtn.classList.replace('bg-white', 'bg-marker-purple');
                 editBtn.classList.replace('text-marker-black', 'text-white');
                 editContent.classList.remove('hidden-view');
+                renderPhraseList(); // 切換時自動載入分頁列表
             } else if (tabName === 'add') {
                 addBtn.classList.replace('bg-white', 'bg-marker-purple');
                 addBtn.classList.replace('text-marker-black', 'text-white');
@@ -1319,80 +1326,94 @@
         inputEditPhrase.addEventListener('input', () => {
             if (inputEditPhrase.value.length > 0) btnClearPhraseSearch.classList.remove('hidden');
             else btnClearPhraseSearch.classList.add('hidden');
+            currentPhrasePage = 1; // 輸入過濾條件時，回到第一頁
+            renderPhraseList();
         });
         btnClearPhraseSearch.addEventListener('click', () => {
             inputEditPhrase.value = '';
             btnClearPhraseSearch.classList.add('hidden');
             inputEditPhrase.focus();
-            document.getElementById('edit-phrase-results').innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center text-slate-400">
-                    <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
-                    <p class="font-bold">請輸入辭庫文字或按鍵碼進行查詢</p>
-                </div>
-            `;
+            currentPhrasePage = 1;
+            renderPhraseList();
         });
 
-        function findPhrases() {
-            const searchType = document.getElementById('select-phrase-search-type').value;
-            const inputVal = inputEditPhrase.value.trim();
-            if (!inputVal) { showToast("請先輸入要查詢的辭庫內容喔！", "error"); return; }
-
-            let results = [];
-            if (searchType === 'word') {
-                for (const [code, words] of Object.entries(phraseDictionary)) {
-                    if (words.includes(inputVal)) results.push({ word: inputVal, code: code });
-                }
-            } else {
-                if (phraseDictionary[inputVal]) {
-                    phraseDictionary[inputVal].forEach(w => results.push({ word: w, code: inputVal }));
+        function getFlatPhrases(filterText = '') {
+            let list = [];
+            for (const [code, words] of Object.entries(phraseDictionary)) {
+                for (const word of words) {
+                    if (!filterText || word.includes(filterText) || code.includes(filterText)) {
+                        list.push({ word, code });
+                    }
                 }
             }
+            return list;
+        }
+
+        function renderPhraseList() {
+            const filterText = inputEditPhrase.value.trim();
+            const flatList = getFlatPhrases(filterText);
+            const totalPages = Math.max(1, Math.ceil(flatList.length / PHRASES_PER_PAGE));
+            
+            if (currentPhrasePage > totalPages) currentPhrasePage = totalPages;
+            if (currentPhrasePage < 1) currentPhrasePage = 1;
+
+            const startIndex = (currentPhrasePage - 1) * PHRASES_PER_PAGE;
+            const endIndex = startIndex + PHRASES_PER_PAGE;
+            const pageItems = flatList.slice(startIndex, endIndex);
 
             const resultsDiv = document.getElementById('edit-phrase-results');
             resultsDiv.innerHTML = '';
-            if (results.length === 0) {
-                resultsDiv.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-slate-400">
-                        <i class="fa-solid fa-ghost text-5xl mb-3 opacity-50"></i>
-                        <p class="font-bold">辭庫裡沒有找到符合的紀錄</p>
-                    </div>
-                `;
-                return;
+            
+            if (flatList.length === 0) {
+                resultsDiv.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-slate-400"><i class="fa-solid fa-ghost text-5xl mb-3 opacity-50"></i><p class="font-bold">沒有找到符合的辭庫紀錄</p></div>';
+            } else {
+                pageItems.forEach((item, idx) => {
+                    const globalIndex = startIndex + idx + 1;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "flex flex-col md:flex-row items-center justify-between p-3 border-b border-dashed border-slate-200 hover:bg-purple-50/50 gap-4";
+                    
+                    const leftDiv = document.createElement('div');
+                    leftDiv.className = "flex items-center gap-3 w-full md:w-auto overflow-hidden";
+                    leftDiv.innerHTML = '<span class="text-slate-400 font-mono text-sm w-8 text-right">' + globalIndex + '.</span><span class="text-xl font-bold text-marker-black truncate" title="' + item.word + '">' + item.word + '</span><span class="text-slate-300"><i class="fa-solid fa-arrow-right"></i></span><span class="font-mono text-lg text-marker-purple font-bold">' + item.code + '</span>';
+                    
+                    const rightDiv = document.createElement('div');
+                    rightDiv.className = "flex gap-2 w-full md:w-auto justify-end";
+                    
+                    const btnEdit = document.createElement('button');
+                    btnEdit.className = "px-3 py-1 bg-white border-2 border-slate-300 rounded text-marker-black hover:border-marker-blue hover:text-marker-blue font-bold text-sm transition-colors";
+                    btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> 修改';
+                    btnEdit.addEventListener('click', () => startEditPhrase(item.word, item.code));
+                    
+                    const btnDelete = document.createElement('button');
+                    btnDelete.className = "px-3 py-1 bg-white border-2 border-slate-300 rounded text-marker-black hover:border-marker-red hover:text-marker-red font-bold text-sm transition-colors";
+                    btnDelete.innerHTML = '<i class="fa-solid fa-trash-can"></i> 刪除';
+                    btnDelete.addEventListener('click', () => deletePhrase(item.word, item.code));
+                    
+                    rightDiv.appendChild(btnEdit);
+                    rightDiv.appendChild(btnDelete);
+                    
+                    wrapper.appendChild(leftDiv);
+                    wrapper.appendChild(rightDiv);
+                    resultsDiv.appendChild(wrapper);
+                });
             }
 
-            results.forEach(item => {
-                const wrapper = document.createElement('div');
-                wrapper.className = "flex flex-col md:flex-row items-center justify-between p-4 border-2 border-slate-300 border-dashed rounded-xl bg-slate-50 gap-4";
-                
-                const leftDiv = document.createElement('div');
-                leftDiv.className = "flex items-center gap-4 w-full md:w-auto overflow-hidden";
-                leftDiv.innerHTML = `
-                    <span class="text-2xl font-bold text-marker-black truncate" title="${item.word}">${item.word}</span>
-                    <span class="text-slate-400 flex-shrink-0"><i class="fa-solid fa-arrow-right-long"></i></span>
-                    <span class="font-mono text-2xl text-marker-purple font-bold flex-shrink-0">${item.code}</span>
-                `;
-                
-                const rightDiv = document.createElement('div');
-                rightDiv.className = "flex gap-2 w-full md:w-auto justify-end";
-                
-                const btnEdit = document.createElement('button');
-                btnEdit.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-black hover:text-marker-blue flex items-center";
-                btnEdit.innerHTML = `<i class="fa-solid fa-pen mr-2"></i>修改`;
-                btnEdit.addEventListener('click', () => startEditPhrase(item.word, item.code));
-                
-                const btnDelete = document.createElement('button');
-                btnDelete.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-red hover:bg-red-50 flex items-center";
-                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i>`;
-                btnDelete.addEventListener('click', () => deletePhrase(item.word, item.code));
-                
-                rightDiv.appendChild(btnEdit);
-                rightDiv.appendChild(btnDelete);
-                
-                wrapper.appendChild(leftDiv);
-                wrapper.appendChild(rightDiv);
-                resultsDiv.appendChild(wrapper);
-            });
+            document.getElementById('phrase-page-info').textContent = '第 ' + currentPhrasePage + ' 頁 / 共 ' + totalPages + ' 頁 (共 ' + flatList.length + ' 筆)';
+            document.getElementById('btn-phrase-prev').disabled = currentPhrasePage === 1;
+            document.getElementById('btn-phrase-next').disabled = currentPhrasePage === totalPages;
         }
+
+        document.getElementById('btn-phrase-prev')?.addEventListener('click', () => {
+            if (currentPhrasePage > 1) {
+                currentPhrasePage--;
+                renderPhraseList();
+            }
+        });
+
+        document.getElementById('btn-phrase-next')?.addEventListener('click', () => {
+            currentPhrasePage++;
+            renderPhraseList();
+        });
 
         function startEditPhrase(word, oldCode) {
             tempEditWord = word;
@@ -1432,21 +1453,21 @@
             if (!phraseDictionary[newCode].includes(word)) phraseDictionary[newCode].push(word);
 
             savePhraseToCloud().then(() => {
-                showToast(`辭庫按鍵碼已成功修改為 ${newCode}`, "success");
-                findPhrases(); 
+                showToast('辭庫按鍵碼已成功修改為 ' + newCode, 'success');
+                renderPhraseList(); 
                 updateTotalCount();
                 closePhraseModal();
             });
         }
 
         function deletePhrase(word, code) {
-            if(confirm(`確定要刪除辭庫「${word}」(按鍵碼：${code}) 嗎？\n刪除後將無法復原。`)) {
+            if(confirm('確定要刪除辭庫「' + word + '」(按鍵碼：' + code + ') 嗎？\n刪除後將無法復原。')) {
                 phraseDictionary[code] = phraseDictionary[code].filter(w => w !== word);
                 if (phraseDictionary[code].length === 0) delete phraseDictionary[code];
                 
                 savePhraseToCloud().then(() => {
                     showToast("已成功刪除該筆辭庫資料！", "success");
-                    findPhrases(); 
+                    renderPhraseList(); 
                     updateTotalCount();
                 });
             }
@@ -1500,7 +1521,10 @@
         document.getElementById('btn-nav-upload').addEventListener('click', () => switchView('upload'));
         document.getElementById('btn-nav-manage').addEventListener('click', () => switchView('manage'));
         document.getElementById('btn-nav-roots').addEventListener('click', () => switchView('roots'));
-        document.getElementById('btn-nav-phrases').addEventListener('click', () => switchView('phrases'));
+        document.getElementById('btn-nav-phrases').addEventListener('click', () => {
+            switchView('phrases');
+            switchPhraseTab('edit');
+        });
         
         document.querySelectorAll('.btn-back-home').forEach(btn => btn.addEventListener('click', () => switchView('home')));
         
@@ -1512,7 +1536,6 @@
         document.getElementById('tab-edit-phrase').addEventListener('click', () => switchPhraseTab('edit'));
         document.getElementById('tab-add-phrase').addEventListener('click', () => switchPhraseTab('add'));
         document.getElementById('tab-upload-phrase').addEventListener('click', () => switchPhraseTab('upload'));
-        document.getElementById('btn-find-phrases').addEventListener('click', findPhrases);
         document.getElementById('btn-add-new-phrase').addEventListener('click', addNewPhrase);
         
         document.querySelectorAll('.btn-export-main-dict').forEach(btn => btn.addEventListener('click', exportDictionary));
@@ -1525,9 +1548,6 @@
         
         document.getElementById('input-edit-root').addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') findRootsForWord(); 
-        });
-        document.getElementById('input-edit-phrase').addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') findPhrases(); 
         });
         document.getElementById('modal-input-code').addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') confirmEditRoot(); 
