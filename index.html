@@ -24,6 +24,7 @@
                             blue: '#2563eb',
                             red: '#dc2626',
                             green: '#16a34a',
+                            purple: '#9333ea',
                             black: '#1e293b'
                         },
                         primary: '#2563eb',
@@ -120,52 +121,62 @@
             
             <div id="status-badge" class="hidden text-sm text-slate-600 bg-slate-50 border-2 border-slate-300 px-3 py-1 rounded-lg shadow-sm font-bold flex flex-col items-end">
                 <span><i class="fa-solid fa-circle text-xs text-marker-green mr-1" id="conn-icon"></i><span id="conn-text">已連線</span></span>
-                <span class="text-xs">總共 <span id="total-words-count" class="text-marker-blue">0</span> 字</span>
+                <span class="text-xs">主字典: <span id="total-words-count" class="text-marker-blue">0</span> 字</span>
+                <span class="text-xs">辭庫: <span id="total-phrases-count" class="text-marker-purple">0</span> 詞</span>
             </div>
         </header>
 
         <div class="relative z-10 flex-1 flex flex-col">
 
+            <!-- 初始化視圖 -->
             <div id="view-init" class="flex-1 flex flex-col items-center justify-center text-center">
                 <i class="fa-solid fa-spinner loader text-5xl text-marker-blue mb-4"></i>
                 <h2 class="text-2xl font-bold text-marker-black">正在擦拭白板並連接雲端...</h2>
                 <p class="text-slate-500 mt-2 font-bold" id="init-status">驗證使用者身分中</p>
             </div>
 
+            <!-- 首頁視圖 -->
             <div id="view-home" class="flex-1 flex flex-col items-center justify-center gap-8 hidden-view">
                 <h2 class="text-3xl font-bold text-marker-black mb-4 border-b-4 border-marker-red inline-block pb-2">今天想做什麼呢？</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
                     <button id="btn-nav-upload" class="marker-btn h-48 bg-white hover:bg-blue-50 text-marker-blue border-marker-blue flex flex-col items-center justify-center group">
                         <i class="fa-solid fa-file-arrow-up text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
-                        <span class="text-xl font-bold">1. 字典檔案上傳</span>
-                        <span class="text-sm text-slate-500 mt-2 font-normal">匯入與雲端同步</span>
+                        <span class="text-xl font-bold">1. 主字典檔上傳</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">匯入主字典與雲端同步</span>
                     </button>
                     
                     <button id="btn-nav-manage" class="marker-btn h-48 bg-white hover:bg-green-50 text-marker-green border-marker-green flex flex-col items-center justify-center group">
                         <i class="fa-solid fa-arrow-down-a-z text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
                         <span class="text-xl font-bold">2. 候選字管理</span>
-                        <span class="text-sm text-slate-500 mt-2 font-normal">搜尋與調整排序</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">搜尋與調整主字典排序</span>
                     </button>
                     
                     <button id="btn-nav-roots" class="marker-btn h-48 bg-white hover:bg-red-50 text-marker-red border-marker-red flex flex-col items-center justify-center group">
                         <i class="fa-solid fa-puzzle-piece text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
                         <span class="text-xl font-bold">3. 輸入法字根管理</span>
-                        <span class="text-sm text-slate-500 mt-2 font-normal">新增/修改按鍵碼</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">新增/修改主字典按鍵碼</span>
+                    </button>
+
+                    <button id="btn-nav-phrases" class="marker-btn h-48 bg-white hover:bg-purple-50 text-marker-purple border-marker-purple flex flex-col items-center justify-center group">
+                        <i class="fa-solid fa-book-open text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
+                        <span class="text-xl font-bold">4. 使用者辭庫</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">自訂詞彙與短語獨立管理</span>
                     </button>
                 </div>
             </div>
 
+            <!-- 視圖: 主字典上傳 -->
             <div id="view-upload" class="hidden-view flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-2xl font-bold"><span class="text-marker-blue mr-2">1.</span>上傳字典檔以進行比對</h2>
+                    <h2 class="text-2xl font-bold"><span class="text-marker-blue mr-2">1.</span>上傳主字典檔以進行比對</h2>
                     <button class="btn-back-home marker-btn bg-white text-marker-black px-4 py-2 font-bold text-sm flex items-center">
                         <i class="fa-solid fa-house mr-2"></i>回首頁
                     </button>
                 </div>
                 
                 <div class="sticky-note p-4 rounded-lg mb-6 text-sm text-slate-800 font-bold">
-                    <i class="fa-solid fa-thumbtack text-marker-red mr-2"></i>系統將會讀取您上傳的檔案，並與雲端資料庫比對。若發現雲端缺少的新字詞，會自動補齊。
+                    <i class="fa-solid fa-thumbtack text-marker-red mr-2"></i>系統將會讀取您上傳的主字典，並與雲端資料庫比對。若發現雲端缺少的新字詞，會自動補齊。
                 </div>
                 
                 <div id="drop-zone" class="border-4 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-marker-blue hover:bg-blue-50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
@@ -180,11 +191,12 @@
                     <p class="text-xl font-bold text-marker-black mb-1" id="file-ready-name">filename.yaml</p>
                     <p class="text-slate-600 font-bold mb-4">解析完成！可以開始與雲端進行合併同步了</p>
                     <button id="btn-start-sync" class="marker-btn bg-marker-blue text-white px-8 py-3 font-bold text-lg inline-flex items-center">
-                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始雲端同步
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始主字典雲端同步
                     </button>
                 </div>
             </div>
 
+            <!-- 視圖: 同步等待畫面 -->
             <div id="view-sync" class="hidden-view flex-1 flex flex-col items-center justify-center text-center">
                 <i class="fa-solid fa-arrows-rotate loader text-6xl text-marker-blue mb-6"></i>
                 <h2 class="text-3xl font-bold text-marker-black mb-2">正在努力畫寫資料庫...</h2>
@@ -196,6 +208,7 @@
                 <p class="text-sm font-mono text-slate-500 font-bold" id="sync-status-text">準備中...</p>
             </div>
 
+            <!-- 視圖: 候選字管理 (主字典) -->
             <div id="view-manage" class="hidden-view flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold"><span class="text-marker-green mr-2">2.</span>候選字搜尋與調整順序</h2>
@@ -246,12 +259,13 @@
                         <p class="text-marker-green font-bold text-xl mb-1">完成所有修改了嗎？</p>
                         <p class="text-slate-600 font-bold">把白板上的內容匯出，放回小狼毫資料夾。</p>
                     </div>
-                    <button class="btn-export-dict marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
-                        <i class="fa-solid fa-file-export mr-2"></i>匯出字典檔
+                    <button class="btn-export-main-dict marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
+                        <i class="fa-solid fa-file-export mr-2"></i>匯出主字典檔
                     </button>
                 </div>
             </div>
 
+            <!-- 視圖: 字根管理 (主字典) -->
             <div id="view-roots" class="hidden-view flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-6 border-b-2 border-slate-200 border-dashed pb-4">
                     <h2 class="text-2xl font-bold"><span class="text-marker-red mr-2">3.</span>輸入法字根管理</h2>
@@ -260,7 +274,7 @@
                     </button>
                 </div>
 
-                <div class="flex gap-4 mb-6">
+                <div class="flex gap-4 mb-6 flex-wrap">
                     <button id="tab-edit-root" class="marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none">修改現有字根</button>
                     <button id="tab-add-root" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">新增全新字根</button>
                 </div>
@@ -271,7 +285,12 @@
                             <option value="word">找中文字</option>
                             <option value="code">找按鍵碼</option>
                         </select>
-                        <input type="text" id="input-edit-root" placeholder="請輸入查詢內容..." class="whiteboard-input flex-1 text-xl font-bold">
+                        <div class="relative flex-1">
+                            <input type="text" id="input-edit-root" placeholder="請輸入查詢內容..." class="whiteboard-input w-full text-xl font-bold pr-10">
+                            <button id="btn-clear-root-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-marker-red hidden transition-colors" title="清除內容">
+                                <i class="fa-solid fa-eraser text-2xl"></i>
+                            </button>
+                        </div>
                         <button id="btn-find-roots" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找找看</button>
                     </div>
                     
@@ -307,8 +326,100 @@
                         <p class="text-marker-green font-bold text-xl mb-1">完成字根管理了嗎？</p>
                         <p class="text-slate-600 font-bold">記得將白板上的內容匯出並更新喔！</p>
                     </div>
-                    <button class="btn-export-dict marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
-                        <i class="fa-solid fa-file-export mr-2"></i>匯出字典檔
+                    <button class="btn-export-main-dict marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
+                        <i class="fa-solid fa-file-export mr-2"></i>匯出主字典檔
+                    </button>
+                </div>
+            </div>
+
+            <!-- 視圖: 使用者辭庫 (雙軌新架構) -->
+            <div id="view-phrases" class="hidden-view flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-6 border-b-2 border-slate-200 border-dashed pb-4">
+                    <h2 class="text-2xl font-bold"><span class="text-marker-purple mr-2">4.</span>使用者辭庫管理</h2>
+                    <button class="btn-back-home marker-btn bg-white text-marker-black px-4 py-2 font-bold text-sm flex items-center">
+                        <i class="fa-solid fa-house mr-2"></i>回首頁
+                    </button>
+                </div>
+
+                <!-- 辭庫標籤選單 -->
+                <div class="flex gap-4 mb-6 flex-wrap">
+                    <button id="tab-edit-phrase" class="marker-btn bg-marker-purple text-white px-6 py-2 font-bold flex-1 md:flex-none">查詢與修改辭庫</button>
+                    <button id="tab-add-phrase" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">新增自訂辭庫</button>
+                    <button id="tab-upload-phrase" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">匯入辭庫檔</button>
+                </div>
+
+                <!-- 辭庫內容1: 查詢與修改 -->
+                <div id="content-edit-phrase" class="flex flex-col flex-1">
+                    <div class="flex gap-3 mb-4">
+                        <select id="select-phrase-search-type" class="whiteboard-input bg-white font-bold text-slate-700 cursor-pointer text-lg">
+                            <option value="word">找辭庫文字</option>
+                            <option value="code">找按鍵碼</option>
+                        </select>
+                        <div class="relative flex-1">
+                            <input type="text" id="input-edit-phrase" placeholder="請輸入辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
+                            <button id="btn-clear-phrase-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-marker-red hidden transition-colors" title="清除內容">
+                                <i class="fa-solid fa-eraser text-2xl"></i>
+                            </button>
+                        </div>
+                        <button id="btn-find-phrases" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找找看</button>
+                    </div>
+                    
+                    <div id="edit-phrase-results" class="flex-1 bg-white border-2 border-slate-300 rounded-xl p-4 overflow-y-auto flex flex-col gap-3">
+                        <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
+                            <p class="font-bold">請輸入辭庫文字或按鍵碼進行查詢</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 辭庫內容2: 新增自訂辭庫 -->
+                <div id="content-add-phrase" class="hidden-view flex flex-col flex-1 bg-white border-2 border-slate-300 rounded-xl p-8 justify-center">
+                    <h3 class="text-2xl font-bold text-marker-black mb-6 text-center border-b-2 border-dashed pb-2 inline-block mx-auto">新增一筆自訂辭庫</h3>
+                    
+                    <div class="max-w-md mx-auto w-full flex flex-col gap-5">
+                        <div>
+                            <label class="block text-slate-600 font-bold mb-2">1. 自訂辭庫內容 (短語/詞彙)：</label>
+                            <input type="text" id="input-add-phrase-word" placeholder="例如：中華民國" class="whiteboard-input w-full text-xl font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-bold mb-2">2. 對應的按鍵碼：</label>
+                            <input type="text" id="input-add-phrase-code" placeholder="例如：zhmg" class="whiteboard-input w-full font-mono text-xl text-marker-purple font-bold">
+                        </div>
+                        <button id="btn-add-new-phrase" class="marker-btn bg-marker-purple text-white py-4 mt-4 font-bold text-xl">
+                            <i class="fa-solid fa-plus mr-2"></i>存入辭庫白板
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 辭庫內容3: 匯入辭庫檔 -->
+                <div id="content-upload-phrase" class="hidden-view flex flex-col flex-1">
+                    <div class="sticky-note p-4 rounded-lg mb-6 text-sm text-slate-800 font-bold">
+                        <i class="fa-solid fa-thumbtack text-marker-purple mr-2"></i>請上傳小狼毫目前使用的「自訂辭庫檔」(例如 custom_phrase.txt 或 .dict.yaml)。合併後可獨立管理。
+                    </div>
+                    <div id="phrase-drop-zone" class="border-4 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-marker-purple hover:bg-purple-50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
+                        <input type="file" id="phrase-file-input" class="hidden" accept=".yaml,.txt,.dict">
+                        <i class="fa-solid fa-file-import text-6xl text-slate-300 mb-4"></i>
+                        <p class="text-xl font-bold text-slate-600 mb-1">點擊或將辭庫檔丟進來這裡</p>
+                        <p class="text-slate-400 font-mono">支援 .yaml 或 .txt 格式</p>
+                    </div>
+                    <div id="phrase-file-ready-info" class="hidden-view bg-purple-50 border-2 border-marker-purple rounded-xl p-6 mt-4 text-center">
+                        <i class="fa-solid fa-check-double text-5xl text-marker-purple mb-3"></i>
+                        <p class="text-xl font-bold text-marker-black mb-1" id="phrase-file-ready-name">custom_phrase.yaml</p>
+                        <p class="text-slate-600 font-bold mb-4">辭庫檔解析完成！準備好同步至雲端</p>
+                        <button id="btn-start-phrase-sync" class="marker-btn bg-marker-purple text-white px-8 py-3 font-bold text-lg inline-flex items-center">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始合併與同步辭庫
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t-4 border-slate-200 border-dashed flex justify-between items-center bg-purple-50 p-5 rounded-xl border border-purple-200 relative overflow-hidden">
+                    <i class="fa-solid fa-book absolute -right-5 -bottom-5 text-8xl text-purple-200/50 transform -rotate-12"></i>
+                    <div class="relative z-10">
+                        <p class="text-marker-purple font-bold text-xl mb-1">完成辭庫管理了嗎？</p>
+                        <p class="text-slate-600 font-bold">獨立匯出這份「自訂辭庫」，專供小狼毫短語使用！</p>
+                    </div>
+                    <button class="btn-export-phrase-dict marker-btn bg-marker-purple text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
+                        <i class="fa-solid fa-file-export mr-2"></i>匯出辭庫檔
                     </button>
                 </div>
             </div>
@@ -316,7 +427,7 @@
         </div>
     </div>
 
-    <!-- 模態框 (自訂修改確認視窗) -->
+    <!-- 模態框 (主字典修改) -->
     <div id="modal-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200 opacity-0">
         <div class="whiteboard-panel w-full max-w-sm p-8 transform transition-transform duration-200 scale-95" id="modal-content">
             <h3 class="text-2xl font-bold text-marker-black mb-4 border-b-2 border-dashed pb-2 inline-block"><i class="fa-solid fa-pen text-marker-red mr-2"></i>修改字根</h3>
@@ -327,8 +438,25 @@
             <label class="block text-slate-500 font-bold mb-2">請輸入新字根：</label>
             <input type="text" id="modal-input-code" class="whiteboard-input w-full font-mono text-2xl text-marker-green font-bold mb-6" placeholder="新字根...">
             <div class="flex gap-3 justify-end">
-                <button onclick="closeModal()" class="marker-btn px-6 py-2 bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">取消</button>
-                <button onclick="confirmEditRoot()" class="marker-btn px-6 py-2 bg-marker-green text-white font-bold">確認修改</button>
+                <button id="btn-modal-cancel" class="marker-btn px-6 py-2 bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">取消</button>
+                <button id="btn-modal-confirm" class="marker-btn px-6 py-2 bg-marker-green text-white font-bold">確認修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模態框 (辭庫修改) -->
+    <div id="modal-phrase-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200 opacity-0">
+        <div class="whiteboard-panel w-full max-w-sm p-8 transform transition-transform duration-200 scale-95" id="modal-phrase-content">
+            <h3 class="text-2xl font-bold text-marker-black mb-4 border-b-2 border-dashed pb-2 inline-block"><i class="fa-solid fa-book-open text-marker-purple mr-2"></i>修改辭庫按鍵碼</h3>
+            <p class="text-slate-600 mb-4 font-bold text-lg">
+                辭庫「<span id="modal-phrase-word" class="text-marker-blue text-2xl"></span>」目前的按鍵碼：<br>
+                <span id="modal-phrase-old-code" class="text-marker-purple font-mono bg-purple-50 px-2 py-1 rounded inline-block mt-1"></span>
+            </p>
+            <label class="block text-slate-500 font-bold mb-2">請輸入新按鍵碼：</label>
+            <input type="text" id="modal-input-phrase-code" class="whiteboard-input w-full font-mono text-2xl text-marker-green font-bold mb-6" placeholder="新按鍵碼...">
+            <div class="flex gap-3 justify-end">
+                <button id="btn-phrase-modal-cancel" class="marker-btn px-6 py-2 bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">取消</button>
+                <button id="btn-phrase-modal-confirm" class="marker-btn px-6 py-2 bg-marker-green text-white font-bold">確認修改</button>
             </div>
         </div>
     </div>
@@ -355,14 +483,20 @@
         const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let app, auth, db, userId;
+        
         let fileHeaders = [];
         let fileDictionary = {}; 
         let cloudDictionary = {}; 
         let memoryDictionary = {}; 
-        let isOfflineMode = false; 
-        
-        let currentSearchCode = "";
         let originalFileName = "dayi3.dict.yaml";
+        let currentSearchCode = "";
+        
+        let phraseHeaders = [];
+        let filePhraseDictionary = {};
+        let phraseDictionary = {};
+        let originalPhraseFileName = "custom_phrase.yaml";
+        
+        let isOfflineMode = false; 
         
         let tempEditWord = "";
         let tempEditOldCode = "";
@@ -373,7 +507,8 @@
             upload: document.getElementById('view-upload'),
             sync: document.getElementById('view-sync'),
             manage: document.getElementById('view-manage'),
-            roots: document.getElementById('view-roots')
+            roots: document.getElementById('view-roots'),
+            phrases: document.getElementById('view-phrases')
         };
         
         function switchView(viewName) {
@@ -385,15 +520,15 @@
             }
         }
 
-        function showToast(message, type) {
-            type = type || 'info';
+        function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             let icon = 'fa-thumbtack text-marker-red';
-            if (type === 'success') { icon = 'fa-check text-marker-green'; }
-            else if (type === 'error') { icon = 'fa-xmark text-marker-red'; }
+            if (type === 'success') icon = 'fa-check text-marker-green';
+            if (type === 'error') icon = 'fa-xmark text-marker-red';
 
-            toast.className = "sticky-note text-slate-800 p-4 font-bold flex items-center toast-enter pointer-events-auto z-50 text-base max-w-sm";
-            toast.innerHTML = "<i class=\"fa-solid " + icon + " mr-3 text-2xl\"></i><span>" + message + "</span>";
+            toast.className = `sticky-note text-slate-800 p-4 font-bold flex items-center toast-enter pointer-events-auto z-50 text-base max-w-sm`;
+            toast.innerHTML = `<i class="fa-solid ${icon} mr-3 text-2xl"></i><span>${message}</span>`;
+            
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => {
                 toast.classList.replace('toast-enter', 'toast-leave');
@@ -430,19 +565,17 @@
                 }
                 
                 if (!currentUser) {
-                    // 優雅地啟用離線預覽模式，不拋出錯誤避免控制台紅字
                     isOfflineMode = true;
                     document.getElementById('status-badge').classList.remove('hidden');
                     document.getElementById('conn-icon').classList.replace('text-marker-green', 'text-slate-400');
                     document.getElementById('conn-text').textContent = "預覽模式";
-                    
-                    showToast("因預覽環境沙盒限制，已進入「本機測試模式」。發布至 Github 後即可正常連線雲端！", "info");
+                    showToast("因預覽環境限制，已進入「本機測試模式」。", "info");
                     
                     memoryDictionary = {
-                        "a": ["對", "我"],
-                        "aa": ["白", "我"],
-                        "b": ["的", "不"],
-                        "bb": ["明", "的"]
+                        "a": ["對", "我"], "aa": ["白", "我"], "b": ["的", "不"], "bb": ["明", "的"]
+                    };
+                    phraseDictionary = {
+                        "zhmg": ["中華民國"], "twn": ["台灣"]
                     };
                     
                     updateTotalCount();
@@ -451,27 +584,19 @@
                 }
                 
                 userId = currentUser.uid;
-                
                 document.getElementById('status-badge').classList.remove('hidden');
                 await checkCloudData();
 
             } catch (error) {
                 console.error("初始化發生未預期的錯誤:", error);
-                
                 isOfflineMode = true;
                 document.getElementById('status-badge').classList.remove('hidden');
                 document.getElementById('conn-icon').classList.replace('text-marker-green', 'text-slate-400');
                 document.getElementById('conn-text').textContent = "預覽模式";
-                
                 showToast("初始化發生錯誤，已進入「本機測試模式」。", "info");
                 
-                memoryDictionary = {
-                    "a": ["對", "我"],
-                    "aa": ["白", "我"],
-                    "b": ["的", "不"],
-                    "bb": ["明", "的"]
-                };
-                
+                memoryDictionary = { "a": ["對", "我"] };
+                phraseDictionary = { "twn": ["台灣"] };
                 updateTotalCount();
                 switchView('home');
             }
@@ -482,18 +607,20 @@
             try {
                 const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
                 const chunksSnapshot = await getDocs(chunksRef);
-                
                 await loadCloudData(chunksSnapshot);
-
                 memoryDictionary = {};
                 for (const [code, words] of Object.entries(cloudDictionary)) {
                     memoryDictionary[code] = [...words];
                 }
+
+                const phraseChunksRef = collection(db, 'artifacts', appId, 'users', userId, 'phrase_chunks');
+                const phraseChunksSnapshot = await getDocs(phraseChunksRef);
+                await loadPhraseCloudData(phraseChunksSnapshot);
                 
                 updateTotalCount();
 
-                if (chunksSnapshot.empty) {
-                    showToast("白板還是空的，請先上傳字典檔匯入資料吧！", "info");
+                if (chunksSnapshot.empty && phraseChunksSnapshot.empty) {
+                    showToast("白板還是空的，請先匯入主字典或辭庫檔！", "info");
                     switchView('upload'); 
                 } else {
                     showToast("已成功載入雲端白板紀錄！", "success");
@@ -509,37 +636,60 @@
 
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
-        
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { 
             e.preventDefault(); 
             dropZone.classList.add('border-marker-blue', 'bg-blue-50'); 
         });
-        dropZone.addEventListener('dragleave', () => { 
+        dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('border-marker-blue', 'bg-blue-50'); 
         });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('border-marker-blue', 'bg-blue-50');
-            if (e.dataTransfer.files.length > 0) {
-                handleFile(e.dataTransfer.files[0]);
-            }
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0], 'main');
         });
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
+            if (e.target.files.length > 0) handleFile(e.target.files[0], 'main');
         });
 
-        function handleFile(file) {
-            originalFileName = file.name;
+        const phraseDropZone = document.getElementById('phrase-drop-zone');
+        const phraseFileInput = document.getElementById('phrase-file-input');
+        phraseDropZone.addEventListener('click', () => phraseFileInput.click());
+        phraseDropZone.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            phraseDropZone.classList.add('border-marker-purple', 'bg-purple-50'); 
+        });
+        phraseDropZone.addEventListener('dragleave', () => {
+            phraseDropZone.classList.remove('border-marker-purple', 'bg-purple-50'); 
+        });
+        phraseDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            phraseDropZone.classList.remove('border-marker-purple', 'bg-purple-50');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0], 'phrase');
+        });
+        phraseFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0], 'phrase');
+        });
+
+        function handleFile(file, type) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                parseDictionary(e.target.result);
-                dropZone.classList.add('hidden-view');
-                document.getElementById('file-ready-info').classList.remove('hidden-view');
-                document.getElementById('file-ready-name').textContent = originalFileName;
-                showToast('檔案解析完成！可以開始同步了', 'success');
+                if (type === 'main') {
+                    originalFileName = file.name;
+                    parseDictionary(e.target.result);
+                    dropZone.classList.add('hidden-view');
+                    document.getElementById('file-ready-info').classList.remove('hidden-view');
+                    document.getElementById('file-ready-name').textContent = originalFileName;
+                    showToast('主字典解析完成！可以開始同步了', 'success');
+                } else {
+                    originalPhraseFileName = file.name;
+                    parsePhraseDictionary(e.target.result);
+                    phraseDropZone.classList.add('hidden-view');
+                    document.getElementById('phrase-file-ready-info').classList.remove('hidden-view');
+                    document.getElementById('phrase-file-ready-name').textContent = originalPhraseFileName;
+                    showToast('辭庫檔解析完成！可以合併了', 'success');
+                }
             };
             reader.onerror = () => showToast('讀取檔案失敗', 'error');
             reader.readAsText(file, 'UTF-8');
@@ -549,27 +699,47 @@
             const lines = text.split(/\r?\n/);
             fileHeaders = [];
             fileDictionary = {};
-
             let inHeader = true;
             for (let line of lines) {
                 const trimmed = line.trim();
                 if (inHeader && (trimmed.startsWith('#') || trimmed.startsWith('---') || trimmed.includes('name:') || trimmed.includes('version:') || trimmed.includes('sort:') || trimmed === '...')) {
                     fileHeaders.push(line);
-                    if (trimmed === '...') {
-                        inHeader = false; 
-                    }
+                    if (trimmed === '...') inHeader = false; 
                     continue;
                 }
-                
-                if (trimmed !== '') {
+                inHeader = false;
+                if (trimmed !== '' && !trimmed.startsWith('#')) {
                     const parts = line.split('\t');
                     if (parts.length >= 2) {
                         const word = parts[0].trim();
                         const code = parts[1].trim();
                         if (!fileDictionary[code]) fileDictionary[code] = [];
-                        if (!fileDictionary[code].includes(word)) {
-                            fileDictionary[code].push(word);
-                        }
+                        if (!fileDictionary[code].includes(word)) fileDictionary[code].push(word);
+                    }
+                }
+            }
+        }
+
+        function parsePhraseDictionary(text) {
+            const lines = text.split(/\r?\n/);
+            phraseHeaders = [];
+            filePhraseDictionary = {};
+            let inHeader = true;
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (inHeader && (trimmed.startsWith('#') || trimmed.startsWith('---') || trimmed.includes('name:') || trimmed.includes('version:') || trimmed.includes('sort:') || trimmed === '...')) {
+                    phraseHeaders.push(line);
+                    if (trimmed === '...') inHeader = false; 
+                    continue;
+                }
+                inHeader = false;
+                if (trimmed !== '' && !trimmed.startsWith('#')) {
+                    const parts = line.split('\t');
+                    if (parts.length >= 2) {
+                        const word = parts[0].trim();
+                        const code = parts[1].trim();
+                        if (!filePhraseDictionary[code]) filePhraseDictionary[code] = [];
+                        if (!filePhraseDictionary[code].includes(word)) filePhraseDictionary[code].push(word);
                     }
                 }
             }
@@ -579,15 +749,14 @@
             switchView('sync');
             try {
                 if (!isOfflineMode) {
-                    document.getElementById('sync-status-text').textContent = "正在下載雲端歷史資料...";
+                    document.getElementById('sync-status-text').textContent = "正在下載雲端主字典資料...";
                     document.getElementById('sync-progress-bar').style.width = "20%";
-                    
                     const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
                     const chunksSnapshot = await getDocs(chunksRef);
                     await loadCloudData(chunksSnapshot);
                 }
 
-                document.getElementById('sync-status-text').textContent = "正在比對並補齊資料...";
+                document.getElementById('sync-status-text').textContent = "正在比對並補齊主字典...";
                 document.getElementById('sync-progress-bar').style.width = "50%";
 
                 memoryDictionary = {};
@@ -600,9 +769,7 @@
                         memoryDictionary[code] = [...words];
                     } else {
                         for (const w of words) {
-                            if (!memoryDictionary[code].includes(w)) {
-                                memoryDictionary[code].push(w);
-                            }
+                            if (!memoryDictionary[code].includes(w)) memoryDictionary[code].push(w);
                         }
                     }
                 }
@@ -616,7 +783,7 @@
                 setTimeout(() => {
                     switchView('home');
                     updateTotalCount();
-                    showToast("白板同步完成囉！", "success");
+                    showToast("主字典同步完成囉！", "success");
                     
                     dropZone.classList.remove('hidden-view');
                     document.getElementById('file-ready-info').classList.add('hidden-view');
@@ -630,61 +797,130 @@
             }
         });
 
+        document.getElementById('btn-start-phrase-sync').addEventListener('click', async () => {
+            switchView('sync');
+            try {
+                if (!isOfflineMode) {
+                    document.getElementById('sync-status-text').textContent = "正在下載雲端辭庫資料...";
+                    document.getElementById('sync-progress-bar').style.width = "20%";
+                    const phraseChunksRef = collection(db, 'artifacts', appId, 'users', userId, 'phrase_chunks');
+                    const phraseChunksSnapshot = await getDocs(phraseChunksRef);
+                    await loadPhraseCloudData(phraseChunksSnapshot);
+                }
+
+                document.getElementById('sync-status-text').textContent = "正在合併辭庫紀錄...";
+                document.getElementById('sync-progress-bar').style.width = "50%";
+                
+                for (const [code, words] of Object.entries(filePhraseDictionary)) {
+                    if (!phraseDictionary[code]) {
+                        phraseDictionary[code] = [...words];
+                    } else {
+                        for (const w of words) {
+                            if (!phraseDictionary[code].includes(w)) phraseDictionary[code].push(w);
+                        }
+                    }
+                }
+
+                document.getElementById('sync-status-text').textContent = "正在上傳辭庫至資料庫...";
+                document.getElementById('sync-progress-bar').style.width = "70%";
+                
+                await savePhraseToCloud();
+                
+                document.getElementById('sync-progress-bar').style.width = "100%";
+                setTimeout(() => {
+                    switchView('phrases');
+                    switchPhraseTab('edit');
+                    updateTotalCount();
+                    showToast("辭庫合併同步完成囉！", "success");
+                    
+                    phraseDropZone.classList.remove('hidden-view');
+                    document.getElementById('phrase-file-ready-info').classList.add('hidden-view');
+                    phraseFileInput.value = '';
+                }, 800);
+
+            } catch (error) {
+                console.error("Phrase Sync error:", error);
+                showToast("辭庫同步過程中發生錯誤", "error");
+                switchView('phrases');
+            }
+        });
+
         async function loadCloudData(snapshot) {
             cloudDictionary = {};
             if (snapshot.empty) return;
-            
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 if (data.entries) {
-                    for (const [code, words] of Object.entries(data.entries)) {
-                        cloudDictionary[code] = words;
-                    }
+                    for (const [code, words] of Object.entries(data.entries)) cloudDictionary[code] = words;
                 }
             });
-
             try {
                 const metaDoc = await getDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'info'));
-                if (metaDoc.exists() && metaDoc.data().headers) {
-                    fileHeaders = metaDoc.data().headers;
+                if (metaDoc.exists() && metaDoc.data().headers) fileHeaders = metaDoc.data().headers;
+            } catch(e) { }
+        }
+
+        async function loadPhraseCloudData(snapshot) {
+            phraseDictionary = {};
+            if (snapshot.empty) return;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.entries) {
+                    for (const [code, words] of Object.entries(data.entries)) phraseDictionary[code] = words;
                 }
-            } catch(e) { 
-                
-            }
+            });
+            try {
+                const metaDoc = await getDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'phrase_info'));
+                if (metaDoc.exists() && metaDoc.data().headers) phraseHeaders = metaDoc.data().headers;
+            } catch(e) { }
         }
 
         async function saveToCloud() {
-            if (isOfflineMode || !userId) {
-                return;
-            }
-            
+            if (isOfflineMode || !userId) return;
             if (fileHeaders.length > 0) {
                 await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'info'), { headers: fileHeaders });
             }
-
             const allEntries = Object.entries(memoryDictionary);
             const CHUNK_SIZE = 2000; 
-            
             let chunkPromises = [];
             for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
                 const chunkSlice = allEntries.slice(i, i + CHUNK_SIZE);
                 const chunkObj = {};
                 chunkSlice.forEach(([c, w]) => { chunkObj[c] = w; });
-                
                 const chunkIndex = Math.floor(i / CHUNK_SIZE);
-                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'dict_chunks', "chunk_" + chunkIndex);
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'dict_chunks', `chunk_${chunkIndex}`);
                 chunkPromises.push(setDoc(docRef, { entries: chunkObj }));
             }
-            
+            await Promise.all(chunkPromises);
+        }
+
+        async function savePhraseToCloud() {
+            if (isOfflineMode || !userId) return;
+            if (phraseHeaders.length > 0) {
+                await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'phrase_info'), { headers: phraseHeaders });
+            }
+            const allEntries = Object.entries(phraseDictionary);
+            const CHUNK_SIZE = 2000; 
+            let chunkPromises = [];
+            for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
+                const chunkSlice = allEntries.slice(i, i + CHUNK_SIZE);
+                const chunkObj = {};
+                chunkSlice.forEach(([c, w]) => { chunkObj[c] = w; });
+                const chunkIndex = Math.floor(i / CHUNK_SIZE);
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'phrase_chunks', `chunk_${chunkIndex}`);
+                chunkPromises.push(setDoc(docRef, { entries: chunkObj }));
+            }
             await Promise.all(chunkPromises);
         }
 
         function updateTotalCount() {
             let count = 0;
-            for (const words of Object.values(memoryDictionary)) {
-                count += words.length;
-            }
+            for (const words of Object.values(memoryDictionary)) count += words.length;
             document.getElementById('total-words-count').textContent = count.toLocaleString();
+            
+            let phraseCount = 0;
+            for (const words of Object.values(phraseDictionary)) phraseCount += words.length;
+            document.getElementById('total-phrases-count').textContent = phraseCount.toLocaleString();
         }
 
         const searchInput = document.getElementById('search-input');
@@ -696,9 +932,6 @@
         const searchHint = document.getElementById('search-hint');
 
         btnSearch.addEventListener('click', executeSearch);
-        searchInput.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') executeSearch(); 
-        });
         
         searchInput.addEventListener('input', () => {
             if (searchInput.value.length > 0) {
@@ -738,9 +971,7 @@
 
             if (!isCodeMatch) {
                 for (const [code, words] of Object.entries(memoryDictionary)) {
-                    if (words.includes(input)) {
-                        matchedCodes.push(code);
-                    }
+                    if (words.includes(input)) matchedCodes.push(code);
                 }
             }
 
@@ -752,27 +983,26 @@
 
             if (matchedCodes.length === 0) {
                 emptyState.classList.remove('hidden-view');
-                showToast("白板上找不到與「" + input + "」相關的字或碼", 'error');
+                showToast(`主字典找不到與「${input}」相關的字或碼`, 'error');
                 return;
             }
 
             if (matchedCodes.length === 1) {
                 currentSearchCode = matchedCodes[0];
                 const wordsCount = memoryDictionary[currentSearchCode].length;
-                const countBadge = "<span class=\"bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm\">共 " + wordsCount + " 個字</span>";
+                const countBadge = `<span class="bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
 
                 if (isCodeMatch) {
-                    searchHint.innerHTML = "正在編輯按鍵碼 <span class=\"font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5\"> " + currentSearchCode + " </span> 的順序 " + countBadge;
+                    searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${currentSearchCode} </span> 的順序 ${countBadge}`;
                 } else {
-                    searchHint.innerHTML = "字元 <span class=\"font-bold text-marker-black mx-1\">「" + input + "」</span>，對應的按鍵碼為 <span class=\"font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5\"> " + currentSearchCode + " </span> " + countBadge;
+                    searchHint.innerHTML = `字元 <span class="font-bold text-marker-black mx-1">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${currentSearchCode} </span> ${countBadge}`;
                 }
                 searchHint.classList.remove('hidden');
                 listContainer.classList.remove('hidden-view');
                 renderList();
             } else {
                 if (!multiCodeSelector) return;
-                
-                document.getElementById('multi-code-title').textContent = "字元「" + input + "」有多個對應的按鍵碼";
+                document.getElementById('multi-code-title').textContent = `字元「${input}」有多個對應的按鍵碼`;
                 const buttonsContainer = document.getElementById('multi-code-buttons');
                 buttonsContainer.innerHTML = '';
                 
@@ -781,22 +1011,14 @@
                     
                     const btn = document.createElement('button');
                     btn.className = "marker-btn flex flex-col items-center p-4 bg-white text-left w-48";
-                    btn.onclick = () => selectMultiCode(code, input);
+                    btn.addEventListener('click', () => selectMultiCode(code, input));
                     
-                    const spanCode = document.createElement('span');
-                    spanCode.className = "text-2xl font-mono font-bold text-marker-blue mb-2";
-                    spanCode.textContent = code;
-                    
-                    const spanPreview = document.createElement('span');
-                    spanPreview.className = "text-sm font-bold text-slate-500 w-full truncate text-center";
-                    spanPreview.title = previewWords;
-                    spanPreview.textContent = "候選: " + previewWords;
-                    
-                    btn.appendChild(spanCode);
-                    btn.appendChild(spanPreview);
+                    btn.innerHTML = `
+                        <span class="text-2xl font-mono font-bold text-marker-blue mb-2">${code}</span>
+                        <span class="text-sm font-bold text-slate-500 w-full truncate text-center" title="${previewWords}">候選: ${previewWords}</span>
+                    `;
                     buttonsContainer.appendChild(btn);
                 });
-                
                 multiCodeSelector.classList.remove('hidden-view');
             }
         }
@@ -804,12 +1026,10 @@
         function selectMultiCode(selectedCode, word) {
             const multiCodeSelector = document.getElementById('multi-code-selector');
             if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
-            
             currentSearchCode = selectedCode;
             const wordsCount = memoryDictionary[currentSearchCode].length;
-            const countBadge = "<span class=\"bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm\">共 " + wordsCount + " 個字</span>";
-            
-            searchHint.innerHTML = "字元 <span class=\"font-bold text-marker-black mx-1\">「" + word + "」</span>，您選擇編輯按鍵碼 <span class=\"font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5\"> " + selectedCode + " </span> " + countBadge;
+            const countBadge = `<span class="bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
+            searchHint.innerHTML = `字元 <span class="font-bold text-marker-black mx-1">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${selectedCode} </span> ${countBadge}`;
             searchHint.classList.remove('hidden');
             listContainer.classList.remove('hidden-view');
             renderList();
@@ -827,22 +1047,11 @@
                 
                 const leftDiv = document.createElement('div');
                 leftDiv.className = "flex items-center gap-4";
-                
-                const badge = document.createElement('span');
-                badge.className = "flex items-center justify-center w-8 h-8 rounded-full border-2 border-slate-300 text-slate-500 font-bold text-sm bg-white group-hover:border-marker-green group-hover:text-marker-green transition-colors";
-                badge.textContent = index + 1;
-                
-                const wordSpan = document.createElement('span');
-                wordSpan.className = "text-2xl font-bold text-marker-black";
-                wordSpan.textContent = word;
-
-                const codeSpan = document.createElement('span');
-                codeSpan.className = "font-mono font-bold text-slate-400 text-sm ml-2 bg-slate-100 px-2 py-1 rounded";
-                codeSpan.textContent = currentSearchCode;
-
-                leftDiv.appendChild(badge);
-                leftDiv.appendChild(wordSpan);
-                leftDiv.appendChild(codeSpan);
+                leftDiv.innerHTML = `
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-slate-300 text-slate-500 font-bold text-sm bg-white group-hover:border-marker-green group-hover:text-marker-green transition-colors">${index + 1}</span>
+                    <span class="text-2xl font-bold text-marker-black">${word}</span>
+                    <span class="font-mono font-bold text-slate-400 text-sm ml-2 bg-slate-100 px-2 py-1 rounded">${currentSearchCode}</span>
+                `;
 
                 const rightDiv = document.createElement('div');
                 rightDiv.className = "flex gap-2";
@@ -852,22 +1061,21 @@
                     btnUp.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed shadow-none";
                 } else {
                     btnUp.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-white text-marker-black hover:text-marker-blue";
-                    btnUp.onclick = () => swapWords(index, index - 1);
+                    btnUp.addEventListener('click', () => swapWords(index, index - 1));
                 }
-                btnUp.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+                btnUp.innerHTML = `<i class="fa-solid fa-arrow-up"></i>`;
 
                 const btnDown = document.createElement('button');
                 if (index === words.length - 1) {
                     btnDown.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed shadow-none";
                 } else {
                     btnDown.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-white text-marker-black hover:text-marker-blue";
-                    btnDown.onclick = () => swapWords(index, index + 1);
+                    btnDown.addEventListener('click', () => swapWords(index, index + 1));
                 }
-                btnDown.innerHTML = '<i class="fa-solid fa-arrow-down"></i>';
+                btnDown.innerHTML = `<i class="fa-solid fa-arrow-down"></i>`;
 
                 rightDiv.appendChild(btnUp);
                 rightDiv.appendChild(btnDown);
-
                 li.appendChild(leftDiv);
                 li.appendChild(rightDiv);
                 candidateList.appendChild(li);
@@ -885,12 +1093,11 @@
         document.getElementById('btn-save-order').addEventListener('click', async () => {
             const btn = document.getElementById('btn-save-order');
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>儲存中...';
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>儲存中...`;
             btn.disabled = true;
-
             try {
                 await saveToCloud();
-                showToast("排序修改已經寫入白板囉！", "success");
+                showToast("主字典排序修改已經寫入白板囉！", "success");
             } catch (error) {
                 showToast("儲存失敗", "error");
             } finally {
@@ -899,37 +1106,33 @@
             }
         });
 
-        window.exportDictionary = function() {
+        function exportDictionary() {
             if (Object.keys(memoryDictionary).length === 0) {
-                showToast("目前白板是空的，沒有資料可以匯出喔！", "error");
+                showToast("主字典是空的，沒有資料可以匯出喔！", "error");
                 return;
             }
-
             let finalContent = "";
             if (fileHeaders.length > 0) {
                 finalContent += fileHeaders.join('\n') + '\n';
             } else {
-                finalContent += "---\nname: dayi3\nversion: \"1.0\"\nsort: original\n...\n";
+                finalContent += `---\nname: dayi3\nversion: "1.0"\nsort: original\n...\n`;
             }
-
             for (const [code, words] of Object.entries(memoryDictionary)) {
                 for (const word of words) {
-                    finalContent += word + "\t" + code + "\n";
+                    finalContent += `${word}\t${code}\n`;
                 }
             }
-
             const blob = new Blob([finalContent], { type: 'text/yaml;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "dayi3.dict.yaml";
+            a.download = originalFileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-
-            showToast("已匯出字典檔！趕快去覆蓋小狼毫資料夾吧。", 'success');
-        };
+            showToast("已匯出主字典檔！", 'success');
+        }
 
         function switchRootTab(tabName) {
             const editBtn = document.getElementById('tab-edit-root');
@@ -950,38 +1153,49 @@
             }
         }
 
+        const inputEditRoot = document.getElementById('input-edit-root');
+        const btnClearRootSearch = document.getElementById('btn-clear-root-search');
+        inputEditRoot.addEventListener('input', () => {
+            if (inputEditRoot.value.length > 0) btnClearRootSearch.classList.remove('hidden');
+            else btnClearRootSearch.classList.add('hidden');
+        });
+        btnClearRootSearch.addEventListener('click', () => {
+            inputEditRoot.value = '';
+            btnClearRootSearch.classList.add('hidden');
+            inputEditRoot.focus();
+            document.getElementById('edit-root-results').innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-puzzle-piece text-5xl mb-3 opacity-50"></i>
+                    <p class="font-bold">請輸入文字或按鍵碼進行查詢</p>
+                </div>
+            `;
+        });
+
         function findRootsForWord() {
             const searchType = document.getElementById('select-search-type').value;
-            const inputVal = document.getElementById('input-edit-root').value.trim();
-            if (!inputVal) {
-                showToast("請先輸入要查詢的內容喔！", "error");
-                return;
-            }
+            const inputVal = inputEditRoot.value.trim();
+            if (!inputVal) { showToast("請先輸入要查詢的內容喔！", "error"); return; }
 
             let results = [];
-            
             if (searchType === 'word') {
                 for (const [code, words] of Object.entries(memoryDictionary)) {
-                    if (words.includes(inputVal)) {
-                        results.push({ word: inputVal, code: code });
-                    }
+                    if (words.includes(inputVal)) results.push({ word: inputVal, code: code });
                 }
             } else {
                 if (memoryDictionary[inputVal]) {
-                    memoryDictionary[inputVal].forEach(w => {
-                        results.push({ word: w, code: inputVal });
-                    });
+                    memoryDictionary[inputVal].forEach(w => results.push({ word: w, code: inputVal }));
                 }
             }
 
             const resultsDiv = document.getElementById('edit-root-results');
             resultsDiv.innerHTML = '';
-            
             if (results.length === 0) {
-                const emptyDiv = document.createElement('div');
-                emptyDiv.className = "h-full flex flex-col items-center justify-center text-slate-400";
-                emptyDiv.innerHTML = "<i class=\"fa-solid fa-ghost text-5xl mb-3 opacity-50\"></i><p class=\"font-bold\">字典裡沒有找到符合的紀錄</p>";
-                resultsDiv.appendChild(emptyDiv);
+                resultsDiv.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-ghost text-5xl mb-3 opacity-50"></i>
+                        <p class="font-bold">主字典裡沒有找到符合的紀錄</p>
+                    </div>
+                `;
                 return;
             }
 
@@ -991,12 +1205,16 @@
                 
                 const leftDiv = document.createElement('div');
                 leftDiv.className = "flex items-center gap-4";
-                leftDiv.innerHTML = "<span class=\"text-2xl font-bold text-marker-black\">" + item.word + "</span><span class=\"text-slate-400\"><i class=\"fa-solid fa-arrow-right-long\"></i></span><span class=\"font-mono text-2xl text-marker-blue font-bold\">" + item.code + "</span>";
+                leftDiv.innerHTML = `
+                    <span class="text-2xl font-bold text-marker-black">${item.word}</span>
+                    <span class="text-slate-400"><i class="fa-solid fa-arrow-right-long"></i></span>
+                    <span class="font-mono text-2xl text-marker-blue font-bold">${item.code}</span>
+                `;
                 
                 const btn = document.createElement('button');
                 btn.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-black hover:text-marker-red flex items-center";
-                btn.innerHTML = "<i class=\"fa-solid fa-pen mr-2\"></i>修改字根";
-                btn.onclick = () => startEditRoot(item.word, item.code);
+                btn.innerHTML = `<i class="fa-solid fa-pen mr-2"></i>修改字根`;
+                btn.addEventListener('click', () => startEditRoot(item.word, item.code));
                 
                 wrapper.appendChild(leftDiv);
                 wrapper.appendChild(btn);
@@ -1004,131 +1222,321 @@
             });
         }
 
-        window.startEditRoot = function(word, oldCode) {
+        function startEditRoot(word, oldCode) {
             tempEditWord = word;
             tempEditOldCode = oldCode;
-            
             document.getElementById('modal-word').textContent = word;
             document.getElementById('modal-old-code').textContent = oldCode;
             document.getElementById('modal-input-code').value = oldCode;
-            
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            
             overlay.classList.remove('hidden');
-            // 強制瀏覽器重新渲染以套用動畫
             void overlay.offsetWidth;
             overlay.classList.replace('opacity-0', 'opacity-100');
             content.classList.replace('scale-95', 'scale-100');
-            
             const inputField = document.getElementById('modal-input-code');
             inputField.focus();
             inputField.select();
-        };
+        }
 
-        window.closeModal = function() {
+        function closeModal() {
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            
             overlay.classList.replace('opacity-100', 'opacity-0');
             content.classList.replace('scale-100', 'scale-95');
-            
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 200); // 等待動畫完成
-        };
+            setTimeout(() => { overlay.classList.add('hidden'); }, 200);
+        }
 
-        window.confirmEditRoot = function() {
+        function confirmEditRoot() {
             const newCode = document.getElementById('modal-input-code').value.trim();
             const word = tempEditWord;
             const oldCode = tempEditOldCode;
-
-            if (!newCode || newCode === oldCode) {
-                closeModal();
-                return;
-            }
-
-            const cleanNewCode = newCode;
+            if (!newCode || newCode === oldCode) { closeModal(); return; }
 
             memoryDictionary[oldCode] = memoryDictionary[oldCode].filter(w => w !== word);
-            if (memoryDictionary[oldCode].length === 0) {
-                delete memoryDictionary[oldCode];
-            }
-
-            if (!memoryDictionary[cleanNewCode]) {
-                memoryDictionary[cleanNewCode] = [];
-            }
-            if (!memoryDictionary[cleanNewCode].includes(word)) {
-                memoryDictionary[cleanNewCode].push(word);
-            }
+            if (memoryDictionary[oldCode].length === 0) delete memoryDictionary[oldCode];
+            if (!memoryDictionary[newCode]) memoryDictionary[newCode] = [];
+            if (!memoryDictionary[newCode].includes(word)) memoryDictionary[newCode].push(word);
 
             saveToCloud().then(() => {
-                showToast("太棒了！已將「" + word + "」的字根由 " + oldCode + " 改為 " + cleanNewCode, "success");
+                showToast(`太棒了！已將「${word}」的字根由 ${oldCode} 改為 ${newCode}`, "success");
                 findRootsForWord(); 
                 updateTotalCount();
                 closeModal();
             });
-        };
+        }
 
         function addNewRoot() {
             const word = document.getElementById('input-add-word').value.trim();
             const code = document.getElementById('input-add-code').value.trim();
-
-            if (!word || !code) {
-                showToast("中文字和按鍵碼都必須填寫喔！", "error");
-                return;
-            }
-
-            if (!memoryDictionary[code]) {
-                memoryDictionary[code] = [];
-            }
-
-            if (memoryDictionary[code].includes(word)) {
-                showToast("按鍵碼 [" + code + "] 裡面已經有「" + word + "」這個字了，不用重複新增！", "error");
-                return;
-            }
+            if (!word || !code) { showToast("中文字和按鍵碼都必須填寫喔！", "error"); return; }
+            if (!memoryDictionary[code]) memoryDictionary[code] = [];
+            if (memoryDictionary[code].includes(word)) { showToast(`按鍵碼 [${code}] 裡面已經有「${word}」這個字了！`, "error"); return; }
 
             memoryDictionary[code].push(word);
-            
             document.getElementById('input-add-word').value = '';
             document.getElementById('input-add-code').value = '';
 
             saveToCloud().then(() => {
-                showToast("新增成功！「" + word + "」(字根：" + code + ") 已存入白板。", "success");
+                showToast(`新增成功！「${word}」(字根：${code}) 已存入主字典。`, "success");
                 updateTotalCount();
             });
         }
 
-        // 事件綁定
+        function switchPhraseTab(tabName) {
+            const editBtn = document.getElementById('tab-edit-phrase');
+            const addBtn = document.getElementById('tab-add-phrase');
+            const uploadBtn = document.getElementById('tab-upload-phrase');
+            
+            const editContent = document.getElementById('content-edit-phrase');
+            const addContent = document.getElementById('content-add-phrase');
+            const uploadContent = document.getElementById('content-upload-phrase');
+
+            [editBtn, addBtn, uploadBtn].forEach(btn => {
+                btn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
+            });
+            [editContent, addContent, uploadContent].forEach(content => {
+                content.classList.add('hidden-view');
+            });
+
+            if (tabName === 'edit') {
+                editBtn.classList.replace('bg-white', 'bg-marker-purple');
+                editBtn.classList.replace('text-marker-black', 'text-white');
+                editContent.classList.remove('hidden-view');
+            } else if (tabName === 'add') {
+                addBtn.classList.replace('bg-white', 'bg-marker-purple');
+                addBtn.classList.replace('text-marker-black', 'text-white');
+                addContent.classList.remove('hidden-view');
+            } else if (tabName === 'upload') {
+                uploadBtn.classList.replace('bg-white', 'bg-marker-purple');
+                uploadBtn.classList.replace('text-marker-black', 'text-white');
+                uploadContent.classList.remove('hidden-view');
+            }
+        }
+
+        const inputEditPhrase = document.getElementById('input-edit-phrase');
+        const btnClearPhraseSearch = document.getElementById('btn-clear-phrase-search');
+        inputEditPhrase.addEventListener('input', () => {
+            if (inputEditPhrase.value.length > 0) btnClearPhraseSearch.classList.remove('hidden');
+            else btnClearPhraseSearch.classList.add('hidden');
+        });
+        btnClearPhraseSearch.addEventListener('click', () => {
+            inputEditPhrase.value = '';
+            btnClearPhraseSearch.classList.add('hidden');
+            inputEditPhrase.focus();
+            document.getElementById('edit-phrase-results').innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
+                    <p class="font-bold">請輸入辭庫文字或按鍵碼進行查詢</p>
+                </div>
+            `;
+        });
+
+        function findPhrases() {
+            const searchType = document.getElementById('select-phrase-search-type').value;
+            const inputVal = inputEditPhrase.value.trim();
+            if (!inputVal) { showToast("請先輸入要查詢的辭庫內容喔！", "error"); return; }
+
+            let results = [];
+            if (searchType === 'word') {
+                for (const [code, words] of Object.entries(phraseDictionary)) {
+                    if (words.includes(inputVal)) results.push({ word: inputVal, code: code });
+                }
+            } else {
+                if (phraseDictionary[inputVal]) {
+                    phraseDictionary[inputVal].forEach(w => results.push({ word: w, code: inputVal }));
+                }
+            }
+
+            const resultsDiv = document.getElementById('edit-phrase-results');
+            resultsDiv.innerHTML = '';
+            if (results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-ghost text-5xl mb-3 opacity-50"></i>
+                        <p class="font-bold">辭庫裡沒有找到符合的紀錄</p>
+                    </div>
+                `;
+                return;
+            }
+
+            results.forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col md:flex-row items-center justify-between p-4 border-2 border-slate-300 border-dashed rounded-xl bg-slate-50 gap-4";
+                
+                const leftDiv = document.createElement('div');
+                leftDiv.className = "flex items-center gap-4 w-full md:w-auto overflow-hidden";
+                leftDiv.innerHTML = `
+                    <span class="text-2xl font-bold text-marker-black truncate" title="${item.word}">${item.word}</span>
+                    <span class="text-slate-400 flex-shrink-0"><i class="fa-solid fa-arrow-right-long"></i></span>
+                    <span class="font-mono text-2xl text-marker-purple font-bold flex-shrink-0">${item.code}</span>
+                `;
+                
+                const rightDiv = document.createElement('div');
+                rightDiv.className = "flex gap-2 w-full md:w-auto justify-end";
+                
+                const btnEdit = document.createElement('button');
+                btnEdit.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-black hover:text-marker-blue flex items-center";
+                btnEdit.innerHTML = `<i class="fa-solid fa-pen mr-2"></i>修改`;
+                btnEdit.addEventListener('click', () => startEditPhrase(item.word, item.code));
+                
+                const btnDelete = document.createElement('button');
+                btnDelete.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-red hover:bg-red-50 flex items-center";
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i>`;
+                btnDelete.addEventListener('click', () => deletePhrase(item.word, item.code));
+                
+                rightDiv.appendChild(btnEdit);
+                rightDiv.appendChild(btnDelete);
+                
+                wrapper.appendChild(leftDiv);
+                wrapper.appendChild(rightDiv);
+                resultsDiv.appendChild(wrapper);
+            });
+        }
+
+        function startEditPhrase(word, oldCode) {
+            tempEditWord = word;
+            tempEditOldCode = oldCode;
+            document.getElementById('modal-phrase-word').textContent = word;
+            document.getElementById('modal-phrase-old-code').textContent = oldCode;
+            document.getElementById('modal-input-phrase-code').value = oldCode;
+            
+            const overlay = document.getElementById('modal-phrase-overlay');
+            const content = document.getElementById('modal-phrase-content');
+            overlay.classList.remove('hidden');
+            void overlay.offsetWidth;
+            overlay.classList.replace('opacity-0', 'opacity-100');
+            content.classList.replace('scale-95', 'scale-100');
+            const inputField = document.getElementById('modal-input-phrase-code');
+            inputField.focus();
+            inputField.select();
+        }
+
+        function closePhraseModal() {
+            const overlay = document.getElementById('modal-phrase-overlay');
+            const content = document.getElementById('modal-phrase-content');
+            overlay.classList.replace('opacity-100', 'opacity-0');
+            content.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => overlay.classList.add('hidden'), 200);
+        }
+
+        function confirmEditPhrase() {
+            const newCode = document.getElementById('modal-input-phrase-code').value.trim();
+            const word = tempEditWord;
+            const oldCode = tempEditOldCode;
+            if (!newCode || newCode === oldCode) { closePhraseModal(); return; }
+
+            phraseDictionary[oldCode] = phraseDictionary[oldCode].filter(w => w !== word);
+            if (phraseDictionary[oldCode].length === 0) delete phraseDictionary[oldCode];
+            if (!phraseDictionary[newCode]) phraseDictionary[newCode] = [];
+            if (!phraseDictionary[newCode].includes(word)) phraseDictionary[newCode].push(word);
+
+            savePhraseToCloud().then(() => {
+                showToast(`辭庫按鍵碼已成功修改為 ${newCode}`, "success");
+                findPhrases(); 
+                updateTotalCount();
+                closePhraseModal();
+            });
+        }
+
+        function deletePhrase(word, code) {
+            if(confirm(`確定要刪除辭庫「${word}」(按鍵碼：${code}) 嗎？\n刪除後將無法復原。`)) {
+                phraseDictionary[code] = phraseDictionary[code].filter(w => w !== word);
+                if (phraseDictionary[code].length === 0) delete phraseDictionary[code];
+                
+                savePhraseToCloud().then(() => {
+                    showToast("已成功刪除該筆辭庫資料！", "success");
+                    findPhrases(); 
+                    updateTotalCount();
+                });
+            }
+        }
+
+        function addNewPhrase() {
+            const word = document.getElementById('input-add-phrase-word').value.trim();
+            const code = document.getElementById('input-add-phrase-code').value.trim();
+            if (!word || !code) { showToast("辭庫文字和按鍵碼都必須填寫喔！", "error"); return; }
+            if (!phraseDictionary[code]) phraseDictionary[code] = [];
+            if (phraseDictionary[code].includes(word)) { showToast("這個辭庫紀錄已經存在囉！", "error"); return; }
+
+            phraseDictionary[code].push(word);
+            document.getElementById('input-add-phrase-word').value = '';
+            document.getElementById('input-add-phrase-code').value = '';
+
+            savePhraseToCloud().then(() => {
+                showToast(`新增成功！辭庫「${word}」已存入白板。`, "success");
+                updateTotalCount();
+            });
+        }
+
+        function exportPhraseDictionary() {
+            if (Object.keys(phraseDictionary).length === 0) {
+                showToast("目前辭庫是空的，沒有資料可以匯出喔！", "error");
+                return;
+            }
+            let finalContent = "";
+            if (phraseHeaders.length > 0) {
+                finalContent += phraseHeaders.join('\n') + '\n';
+            } else {
+                finalContent += `---\nname: custom_phrase\nversion: "1.0"\nsort: by_weight\n...\n\n`;
+            }
+            for (const [code, words] of Object.entries(phraseDictionary)) {
+                for (const word of words) {
+                    finalContent += `${word}\t${code}\n`;
+                }
+            }
+            const blob = new Blob([finalContent], { type: 'text/yaml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = originalPhraseFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("已專屬匯出您的使用者辭庫檔！", 'success');
+        }
+
         document.getElementById('btn-nav-upload').addEventListener('click', () => switchView('upload'));
         document.getElementById('btn-nav-manage').addEventListener('click', () => switchView('manage'));
         document.getElementById('btn-nav-roots').addEventListener('click', () => switchView('roots'));
+        document.getElementById('btn-nav-phrases').addEventListener('click', () => switchView('phrases'));
         
-        const homeBtns = document.querySelectorAll('.btn-back-home');
-        homeBtns.forEach(btn => btn.addEventListener('click', () => switchView('home')));
+        document.querySelectorAll('.btn-back-home').forEach(btn => btn.addEventListener('click', () => switchView('home')));
         
         document.getElementById('tab-edit-root').addEventListener('click', () => switchRootTab('edit'));
         document.getElementById('tab-add-root').addEventListener('click', () => switchRootTab('add'));
         document.getElementById('btn-find-roots').addEventListener('click', findRootsForWord);
         document.getElementById('btn-add-new-root').addEventListener('click', addNewRoot);
         
-        // 綁定所有匯出按鈕
-        document.querySelectorAll('.btn-export-dict').forEach(btn => {
-            btn.addEventListener('click', exportDictionary);
-        });
+        document.getElementById('tab-edit-phrase').addEventListener('click', () => switchPhraseTab('edit'));
+        document.getElementById('tab-add-phrase').addEventListener('click', () => switchPhraseTab('add'));
+        document.getElementById('tab-upload-phrase').addEventListener('click', () => switchPhraseTab('upload'));
+        document.getElementById('btn-find-phrases').addEventListener('click', findPhrases);
+        document.getElementById('btn-add-new-phrase').addEventListener('click', addNewPhrase);
         
-        // 支援 Enter 鍵快捷查詢與確認
+        document.querySelectorAll('.btn-export-main-dict').forEach(btn => btn.addEventListener('click', exportDictionary));
+        document.querySelectorAll('.btn-export-phrase-dict').forEach(btn => btn.addEventListener('click', exportPhraseDictionary));
+
+        document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
+        document.getElementById('btn-modal-confirm').addEventListener('click', confirmEditRoot);
+        document.getElementById('btn-phrase-modal-cancel').addEventListener('click', closePhraseModal);
+        document.getElementById('btn-phrase-modal-confirm').addEventListener('click', confirmEditPhrase);
+        
         document.getElementById('input-edit-root').addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') findRootsForWord(); 
         });
-        
+        document.getElementById('input-edit-phrase').addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') findPhrases(); 
+        });
         document.getElementById('modal-input-code').addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') confirmEditRoot(); 
         });
+        document.getElementById('modal-input-phrase-code').addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') confirmEditPhrase(); 
+        });
 
-        window.onload = () => {
-            initSystem();
-        };
+        window.onload = () => { initSystem(); };
 
     </script>
 </body>
