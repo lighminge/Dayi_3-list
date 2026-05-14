@@ -161,7 +161,7 @@
                     <button id="btn-nav-phrases" class="marker-btn h-48 bg-white hover:bg-purple-50 text-marker-purple border-marker-purple flex flex-col items-center justify-center group">
                         <i class="fa-solid fa-book-open text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
                         <span class="text-xl font-bold">4. 使用者辭庫</span>
-                        <span class="text-sm text-slate-500 mt-2 font-normal">自訂詞彙與短語獨立管理</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">自訂詞彙與用戶辭典管理</span>
                     </button>
                 </div>
             </div>
@@ -345,7 +345,7 @@
                 <div class="flex gap-4 mb-6 flex-wrap">
                     <button id="tab-edit-phrase" class="marker-btn bg-marker-purple text-white px-6 py-2 font-bold flex-1 md:flex-none">查詢與修改辭庫</button>
                     <button id="tab-add-phrase" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">新增自訂辭庫</button>
-                    <button id="tab-upload-phrase" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">匯入辭庫檔</button>
+                    <button id="tab-upload-phrase" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">匯入用戶辭典</button>
                 </div>
 
                 <!-- 辭庫內容1: 查詢與修改 -->
@@ -356,12 +356,11 @@
                             <option value="code">找按鍵碼</option>
                         </select>
                         <div class="relative flex-1">
-                            <input type="text" id="input-edit-phrase" placeholder="請輸入辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
+                            <input type="text" id="input-edit-phrase" placeholder="即時過濾辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
                             <button id="btn-clear-phrase-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-marker-red hidden transition-colors" title="清除內容">
                                 <i class="fa-solid fa-eraser text-2xl"></i>
                             </button>
                         </div>
-                        <button id="btn-find-phrases" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找找看</button>
                     </div>
                     
                     <div id="phrase-list-container" class="flex-1 bg-white border-2 border-slate-300 rounded-xl overflow-hidden flex flex-col">
@@ -378,7 +377,7 @@
                         <div id="edit-phrase-results" class="flex-1 p-2 overflow-y-auto flex flex-col">
                             <div class="h-full flex flex-col items-center justify-center text-slate-400">
                                 <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
-                                <p class="font-bold">請輸入辭庫文字或按鍵碼進行查詢</p>
+                                <p class="font-bold">載入中...</p>
                             </div>
                         </div>
 
@@ -416,17 +415,17 @@
                 <!-- 辭庫內容3: 匯入辭庫檔 -->
                 <div id="content-upload-phrase" class="hidden-view flex flex-col flex-1">
                     <div class="sticky-note p-4 rounded-lg mb-6 text-sm text-slate-800 font-bold">
-                        <i class="fa-solid fa-thumbtack text-marker-purple mr-2"></i>請至「小狼毫的用戶辭典管理」中匯出您的自訂辭庫檔（通常為 custom_phrase.txt 或 .yaml 格式），並上傳至此處進行合併。
+                        <i class="fa-solid fa-thumbtack text-marker-purple mr-2"></i>請至「小狼毫的用戶辭典管理」中，將您的輸入法匯出成純文字快照檔（檔名通常為 .userdb.txt 結尾），並上傳至此處進行合併。
                     </div>
                     <div id="phrase-drop-zone" class="border-4 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-marker-purple hover:bg-purple-50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
-                        <input type="file" id="phrase-file-input" class="hidden" accept=".yaml,.txt,.dict">
+                        <input type="file" id="phrase-file-input" class="hidden" accept=".txt,.userdb.txt,.yaml">
                         <i class="fa-solid fa-file-import text-6xl text-slate-300 mb-4"></i>
-                        <p class="text-xl font-bold text-slate-600 mb-1">點擊或將辭庫檔丟進來這裡</p>
-                        <p class="text-slate-400 font-mono">支援 .yaml 或 .txt 格式</p>
+                        <p class="text-xl font-bold text-slate-600 mb-1">點擊或將用戶辭典檔丟進來這裡</p>
+                        <p class="text-slate-400 font-mono">強烈建議上傳 .userdb.txt 格式</p>
                     </div>
                     <div id="phrase-file-ready-info" class="hidden-view bg-purple-50 border-2 border-marker-purple rounded-xl p-6 mt-4 text-center">
                         <i class="fa-solid fa-check-double text-5xl text-marker-purple mb-3"></i>
-                        <p class="text-xl font-bold text-marker-black mb-1" id="phrase-file-ready-name">custom_phrase.yaml</p>
+                        <p class="text-xl font-bold text-marker-black mb-1" id="phrase-file-ready-name">filename.userdb.txt</p>
                         <p class="text-slate-600 font-bold mb-4">辭庫檔解析完成！準備好同步至雲端</p>
                         <button id="btn-start-phrase-sync" class="marker-btn bg-marker-purple text-white px-8 py-3 font-bold text-lg inline-flex items-center">
                             <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始合併與同步辭庫
@@ -438,7 +437,7 @@
                     <i class="fa-solid fa-book absolute -right-5 -bottom-5 text-8xl text-purple-200/50 transform -rotate-12"></i>
                     <div class="relative z-10">
                         <p class="text-marker-purple font-bold text-xl mb-1">完成辭庫管理了嗎？</p>
-                        <p class="text-slate-600 font-bold">獨立匯出這份「自訂辭庫」，專供小狼毫短語使用！</p>
+                        <p class="text-slate-600 font-bold">匯出標準的 .userdb.txt 格式，供小狼毫用戶辭典管理匯入！</p>
                     </div>
                     <button class="btn-export-phrase-dict marker-btn bg-marker-purple text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
                         <i class="fa-solid fa-file-export mr-2"></i>匯出辭庫檔
@@ -515,9 +514,13 @@
         
         let phraseHeaders = [];
         let filePhraseDictionary = {};
+        let filePhraseExtraInfo = {}; 
         let phraseDictionary = {};
-        let originalPhraseFileName = "custom_phrase.yaml";
+        let phraseExtraInfo = {}; 
+        let originalPhraseFileName = "dayi3.userdb.txt";
+        
         let currentPhrasePage = 1;
+        let currentPhraseTotalPages = 1;
         const PHRASES_PER_PAGE = 20;
         
         let isOfflineMode = false; 
@@ -544,7 +547,8 @@
             }
         }
 
-        function showToast(message, type = 'info') {
+        function showToast(message, type) {
+            type = type || 'info';
             const toast = document.createElement('div');
             let icon = 'fa-thumbtack text-marker-red';
             if (type === 'success') icon = 'fa-check text-marker-green';
@@ -590,9 +594,9 @@
                 
                 if (!currentUser) {
                     isOfflineMode = true;
-                    document.getElementById('status-badge').classList.remove('hidden');
-                    document.getElementById('conn-icon').classList.replace('text-marker-green', 'text-slate-400');
-                    document.getElementById('conn-text').textContent = "預覽模式";
+                    document.getElementById('status-badge')?.classList.remove('hidden');
+                    document.getElementById('conn-icon')?.classList.replace('text-marker-green', 'text-slate-400');
+                    if(document.getElementById('conn-text')) document.getElementById('conn-text').textContent = "預覽模式";
                     showToast("因預覽環境限制，已進入「本機測試模式」。", "info");
                     
                     memoryDictionary = {
@@ -601,6 +605,10 @@
                     phraseDictionary = {
                         "zhmg": ["中華民國"], "twn": ["台灣"]
                     };
+                    phraseExtraInfo = {
+                        "zhmg|||中華民國": "c=1 d=0.1",
+                        "twn|||台灣": "c=2 d=0.5"
+                    };
                     
                     updateTotalCount();
                     switchView('home');
@@ -608,26 +616,27 @@
                 }
                 
                 userId = currentUser.uid;
-                document.getElementById('status-badge').classList.remove('hidden');
+                document.getElementById('status-badge')?.classList.remove('hidden');
                 await checkCloudData();
 
             } catch (error) {
                 console.error("初始化發生未預期的錯誤:", error);
                 isOfflineMode = true;
-                document.getElementById('status-badge').classList.remove('hidden');
-                document.getElementById('conn-icon').classList.replace('text-marker-green', 'text-slate-400');
-                document.getElementById('conn-text').textContent = "預覽模式";
+                document.getElementById('status-badge')?.classList.remove('hidden');
+                document.getElementById('conn-icon')?.classList.replace('text-marker-green', 'text-slate-400');
+                if(document.getElementById('conn-text')) document.getElementById('conn-text').textContent = "預覽模式";
                 showToast("初始化發生錯誤，已進入「本機測試模式」。", "info");
                 
                 memoryDictionary = { "a": ["對", "我"] };
                 phraseDictionary = { "twn": ["台灣"] };
+                phraseExtraInfo = { "twn|||台灣": "c=1" };
                 updateTotalCount();
                 switchView('home');
             }
         }
 
         async function checkCloudData() {
-            document.getElementById('init-status').textContent = "檢查雲端紀錄...";
+            if(document.getElementById('init-status')) document.getElementById('init-status').textContent = "檢查雲端紀錄...";
             try {
                 const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
                 const chunksSnapshot = await getDocs(chunksRef);
@@ -660,39 +669,39 @@
 
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { 
+        dropZone?.addEventListener('click', () => fileInput?.click());
+        dropZone?.addEventListener('dragover', (e) => { 
             e.preventDefault(); 
             dropZone.classList.add('border-marker-blue', 'bg-blue-50'); 
         });
-        dropZone.addEventListener('dragleave', () => {
+        dropZone?.addEventListener('dragleave', () => {
             dropZone.classList.remove('border-marker-blue', 'bg-blue-50'); 
         });
-        dropZone.addEventListener('drop', (e) => {
+        dropZone?.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('border-marker-blue', 'bg-blue-50');
             if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0], 'main');
         });
-        fileInput.addEventListener('change', (e) => {
+        fileInput?.addEventListener('change', (e) => {
             if (e.target.files.length > 0) handleFile(e.target.files[0], 'main');
         });
 
         const phraseDropZone = document.getElementById('phrase-drop-zone');
         const phraseFileInput = document.getElementById('phrase-file-input');
-        phraseDropZone.addEventListener('click', () => phraseFileInput.click());
-        phraseDropZone.addEventListener('dragover', (e) => { 
+        phraseDropZone?.addEventListener('click', () => phraseFileInput?.click());
+        phraseDropZone?.addEventListener('dragover', (e) => { 
             e.preventDefault(); 
             phraseDropZone.classList.add('border-marker-purple', 'bg-purple-50'); 
         });
-        phraseDropZone.addEventListener('dragleave', () => {
+        phraseDropZone?.addEventListener('dragleave', () => {
             phraseDropZone.classList.remove('border-marker-purple', 'bg-purple-50'); 
         });
-        phraseDropZone.addEventListener('drop', (e) => {
+        phraseDropZone?.addEventListener('drop', (e) => {
             e.preventDefault();
             phraseDropZone.classList.remove('border-marker-purple', 'bg-purple-50');
             if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0], 'phrase');
         });
-        phraseFileInput.addEventListener('change', (e) => {
+        phraseFileInput?.addEventListener('change', (e) => {
             if (e.target.files.length > 0) handleFile(e.target.files[0], 'phrase');
         });
 
@@ -702,16 +711,16 @@
                 if (type === 'main') {
                     originalFileName = file.name;
                     parseDictionary(e.target.result);
-                    dropZone.classList.add('hidden-view');
-                    document.getElementById('file-ready-info').classList.remove('hidden-view');
-                    document.getElementById('file-ready-name').textContent = originalFileName;
+                    dropZone?.classList.add('hidden-view');
+                    document.getElementById('file-ready-info')?.classList.remove('hidden-view');
+                    if(document.getElementById('file-ready-name')) document.getElementById('file-ready-name').textContent = originalFileName;
                     showToast('主字典解析完成！可以開始同步了', 'success');
                 } else {
                     originalPhraseFileName = file.name;
-                    parsePhraseDictionary(e.target.result);
-                    phraseDropZone.classList.add('hidden-view');
-                    document.getElementById('phrase-file-ready-info').classList.remove('hidden-view');
-                    document.getElementById('phrase-file-ready-name').textContent = originalPhraseFileName;
+                    parsePhraseDictionary(e.target.result, file.name);
+                    phraseDropZone?.classList.add('hidden-view');
+                    document.getElementById('phrase-file-ready-info')?.classList.remove('hidden-view');
+                    if(document.getElementById('phrase-file-ready-name')) document.getElementById('phrase-file-ready-name').textContent = originalPhraseFileName;
                     showToast('辭庫檔解析完成！可以合併了', 'success');
                 }
             };
@@ -744,44 +753,62 @@
             }
         }
 
-        function parsePhraseDictionary(text) {
+        function parsePhraseDictionary(text, fileName) {
             const lines = text.split(/\r?\n/);
             phraseHeaders = [];
             filePhraseDictionary = {};
+            filePhraseExtraInfo = {};
+            
+            const isUserDb = fileName && fileName.endsWith('.userdb.txt');
+            
             let inHeader = true;
             for (let line of lines) {
                 const trimmed = line.trim();
                 if (inHeader && (trimmed.startsWith('#') || trimmed.startsWith('---') || trimmed.includes('name:') || trimmed.includes('version:') || trimmed.includes('sort:') || trimmed === '...')) {
                     phraseHeaders.push(line);
-                    if (trimmed === '...') inHeader = false; 
+                    if (trimmed === '...' && !isUserDb) inHeader = false; 
                     continue;
                 }
                 inHeader = false;
                 if (trimmed !== '' && !trimmed.startsWith('#')) {
                     const parts = line.split('\t');
                     if (parts.length >= 2) {
-                        const word = parts[0].trim();
-                        const code = parts[1].trim();
+                        let word, code, extra;
+                        
+                        if (isUserDb || phraseHeaders.some(h => h.includes('# Rime user dictionary'))) {
+                            code = parts[0].trim();
+                            word = parts[1].trim();
+                            extra = parts.length > 2 ? parts.slice(2).join('\t') : '';
+                        } else {
+                            word = parts[0].trim();
+                            code = parts[1].trim();
+                            extra = parts.length > 2 ? parts.slice(2).join('\t') : '';
+                        }
+                        
                         if (!filePhraseDictionary[code]) filePhraseDictionary[code] = [];
                         if (!filePhraseDictionary[code].includes(word)) filePhraseDictionary[code].push(word);
+                        
+                        if (extra) {
+                            filePhraseExtraInfo[`${code}|||${word}`] = extra;
+                        }
                     }
                 }
             }
         }
 
-        document.getElementById('btn-start-sync').addEventListener('click', async () => {
+        document.getElementById('btn-start-sync')?.addEventListener('click', async () => {
             switchView('sync');
             try {
                 if (!isOfflineMode) {
-                    document.getElementById('sync-status-text').textContent = "正在下載雲端主字典資料...";
-                    document.getElementById('sync-progress-bar').style.width = "20%";
+                    if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在下載雲端主字典資料...";
+                    if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "20%";
                     const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
                     const chunksSnapshot = await getDocs(chunksRef);
                     await loadCloudData(chunksSnapshot);
                 }
 
-                document.getElementById('sync-status-text').textContent = "正在比對並補齊主字典...";
-                document.getElementById('sync-progress-bar').style.width = "50%";
+                if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在比對並補齊主字典...";
+                if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "50%";
 
                 memoryDictionary = {};
                 for (const [code, words] of Object.entries(cloudDictionary)) {
@@ -798,20 +825,20 @@
                     }
                 }
 
-                document.getElementById('sync-status-text').textContent = "正在上傳更新至資料庫...";
-                document.getElementById('sync-progress-bar').style.width = "70%";
+                if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在上傳更新至資料庫...";
+                if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "70%";
                 
                 await saveToCloud();
                 
-                document.getElementById('sync-progress-bar').style.width = "100%";
+                if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "100%";
                 setTimeout(() => {
                     switchView('home');
                     updateTotalCount();
                     showToast("主字典同步完成囉！", "success");
                     
-                    dropZone.classList.remove('hidden-view');
-                    document.getElementById('file-ready-info').classList.add('hidden-view');
-                    fileInput.value = '';
+                    dropZone?.classList.remove('hidden-view');
+                    document.getElementById('file-ready-info')?.classList.add('hidden-view');
+                    if(fileInput) fileInput.value = '';
                 }, 800);
 
             } catch (error) {
@@ -821,19 +848,19 @@
             }
         });
 
-        document.getElementById('btn-start-phrase-sync').addEventListener('click', async () => {
+        document.getElementById('btn-start-phrase-sync')?.addEventListener('click', async () => {
             switchView('sync');
             try {
                 if (!isOfflineMode) {
-                    document.getElementById('sync-status-text').textContent = "正在下載雲端辭庫資料...";
-                    document.getElementById('sync-progress-bar').style.width = "20%";
+                    if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在下載雲端辭庫資料...";
+                    if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "20%";
                     const phraseChunksRef = collection(db, 'artifacts', appId, 'users', userId, 'phrase_chunks');
                     const phraseChunksSnapshot = await getDocs(phraseChunksRef);
                     await loadPhraseCloudData(phraseChunksSnapshot);
                 }
 
-                document.getElementById('sync-status-text').textContent = "正在合併辭庫紀錄...";
-                document.getElementById('sync-progress-bar').style.width = "50%";
+                if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在合併辭庫紀錄...";
+                if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "50%";
                 
                 for (const [code, words] of Object.entries(filePhraseDictionary)) {
                     if (!phraseDictionary[code]) {
@@ -843,23 +870,30 @@
                             if (!phraseDictionary[code].includes(w)) phraseDictionary[code].push(w);
                         }
                     }
+                    
+                    for (const w of words) {
+                        const extraInfo = filePhraseExtraInfo[`${code}|||${w}`];
+                        if (extraInfo) {
+                            phraseExtraInfo[`${code}|||${w}`] = extraInfo;
+                        }
+                    }
                 }
 
-                document.getElementById('sync-status-text').textContent = "正在上傳辭庫至資料庫...";
-                document.getElementById('sync-progress-bar').style.width = "70%";
+                if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在上傳辭庫至資料庫...";
+                if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "70%";
                 
                 await savePhraseToCloud();
                 
-                document.getElementById('sync-progress-bar').style.width = "100%";
+                if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "100%";
                 setTimeout(() => {
                     switchView('phrases');
                     switchPhraseTab('edit');
                     updateTotalCount();
                     showToast("辭庫合併同步完成囉！", "success");
                     
-                    phraseDropZone.classList.remove('hidden-view');
-                    document.getElementById('phrase-file-ready-info').classList.add('hidden-view');
-                    phraseFileInput.value = '';
+                    phraseDropZone?.classList.remove('hidden-view');
+                    document.getElementById('phrase-file-ready-info')?.classList.add('hidden-view');
+                    if(phraseFileInput) phraseFileInput.value = '';
                 }, 800);
 
             } catch (error) {
@@ -886,11 +920,22 @@
 
         async function loadPhraseCloudData(snapshot) {
             phraseDictionary = {};
+            phraseExtraInfo = {};
             if (snapshot.empty) return;
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 if (data.entries) {
-                    for (const [code, words] of Object.entries(data.entries)) phraseDictionary[code] = words;
+                    for (const [code, items] of Object.entries(data.entries)) {
+                        phraseDictionary[code] = [];
+                        items.forEach(item => {
+                            if (typeof item === 'string') {
+                                phraseDictionary[code].push(item);
+                            } else if (item && item.w) {
+                                phraseDictionary[code].push(item.w);
+                                if (item.x) phraseExtraInfo[`${code}|||${item.w}`] = item.x;
+                            }
+                        });
+                    }
                 }
             });
             try {
@@ -929,7 +974,12 @@
             for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
                 const chunkSlice = allEntries.slice(i, i + CHUNK_SIZE);
                 const chunkObj = {};
-                chunkSlice.forEach(([c, w]) => { chunkObj[c] = w; });
+                chunkSlice.forEach(([c, words]) => { 
+                    chunkObj[c] = words.map(w => {
+                        const extra = phraseExtraInfo[`${c}|||${w}`] || '';
+                        return { w: w, x: extra };
+                    }); 
+                });
                 const chunkIndex = Math.floor(i / CHUNK_SIZE);
                 const docRef = doc(db, 'artifacts', appId, 'users', userId, 'phrase_chunks', `chunk_${chunkIndex}`);
                 chunkPromises.push(setDoc(docRef, { entries: chunkObj }));
@@ -940,11 +990,11 @@
         function updateTotalCount() {
             let count = 0;
             for (const words of Object.values(memoryDictionary)) count += words.length;
-            document.getElementById('total-words-count').textContent = count.toLocaleString();
+            if(document.getElementById('total-words-count')) document.getElementById('total-words-count').textContent = count.toLocaleString();
             
             let phraseCount = 0;
             for (const words of Object.values(phraseDictionary)) phraseCount += words.length;
-            document.getElementById('total-phrases-count').textContent = phraseCount.toLocaleString();
+            if(document.getElementById('total-phrases-count')) document.getElementById('total-phrases-count').textContent = phraseCount.toLocaleString();
         }
 
         const searchInput = document.getElementById('search-input');
@@ -955,30 +1005,30 @@
         const emptyState = document.getElementById('empty-state');
         const searchHint = document.getElementById('search-hint');
 
-        btnSearch.addEventListener('click', executeSearch);
+        btnSearch?.addEventListener('click', executeSearch);
         
-        searchInput.addEventListener('input', () => {
+        searchInput?.addEventListener('input', () => {
             if (searchInput.value.length > 0) {
-                btnClearSearch.classList.remove('hidden');
+                btnClearSearch?.classList.remove('hidden');
             } else {
-                btnClearSearch.classList.add('hidden');
+                btnClearSearch?.classList.add('hidden');
             }
         });
 
-        btnClearSearch.addEventListener('click', () => {
-            searchInput.value = '';
+        btnClearSearch?.addEventListener('click', () => {
+            if(searchInput) searchInput.value = '';
             btnClearSearch.classList.add('hidden');
-            searchInput.focus();
+            searchInput?.focus();
             
-            emptyState.classList.remove('hidden-view');
-            listContainer.classList.add('hidden-view');
-            searchHint.classList.add('hidden');
+            emptyState?.classList.remove('hidden-view');
+            listContainer?.classList.add('hidden-view');
+            searchHint?.classList.add('hidden');
             
-            const multiCodeSelector = document.getElementById('multi-code-selector');
-            if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
+            document.getElementById('multi-code-selector')?.classList.add('hidden-view');
         });
 
         function executeSearch() {
+            if(!searchInput) return;
             const input = searchInput.value.trim();
             if (!input) { 
                 showToast('請輸入查詢內容喔', 'error'); 
@@ -999,14 +1049,13 @@
                 }
             }
 
-            emptyState.classList.add('hidden-view');
-            listContainer.classList.add('hidden-view');
-            searchHint.classList.add('hidden');
-            const multiCodeSelector = document.getElementById('multi-code-selector');
-            if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
+            emptyState?.classList.add('hidden-view');
+            listContainer?.classList.add('hidden-view');
+            searchHint?.classList.add('hidden');
+            document.getElementById('multi-code-selector')?.classList.add('hidden-view');
 
             if (matchedCodes.length === 0) {
-                emptyState.classList.remove('hidden-view');
+                emptyState?.classList.remove('hidden-view');
                 showToast(`主字典找不到與「${input}」相關的字或碼`, 'error');
                 return;
             }
@@ -1017,18 +1066,20 @@
                 const countBadge = `<span class="bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
 
                 if (isCodeMatch) {
-                    searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${currentSearchCode} </span> 的順序 ${countBadge}`;
+                    if(searchHint) searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${currentSearchCode} </span> 的順序 ${countBadge}`;
                 } else {
-                    searchHint.innerHTML = `字元 <span class="font-bold text-marker-black mx-1">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${currentSearchCode} </span> ${countBadge}`;
+                    if(searchHint) searchHint.innerHTML = `字元 <span class="font-bold text-marker-black mx-1">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${currentSearchCode} </span> ${countBadge}`;
                 }
-                searchHint.classList.remove('hidden');
-                listContainer.classList.remove('hidden-view');
+                searchHint?.classList.remove('hidden');
+                listContainer?.classList.remove('hidden-view');
                 renderList();
             } else {
+                const multiCodeSelector = document.getElementById('multi-code-selector');
                 if (!multiCodeSelector) return;
-                document.getElementById('multi-code-title').textContent = `字元「${input}」有多個對應的按鍵碼`;
+                
+                if(document.getElementById('multi-code-title')) document.getElementById('multi-code-title').textContent = `字元「${input}」有多個對應的按鍵碼`;
                 const buttonsContainer = document.getElementById('multi-code-buttons');
-                buttonsContainer.innerHTML = '';
+                if(buttonsContainer) buttonsContainer.innerHTML = '';
                 
                 matchedCodes.forEach(code => {
                     const previewWords = memoryDictionary[code].slice(0, 4).join(', ') + (memoryDictionary[code].length > 4 ? '...' : '');
@@ -1041,29 +1092,28 @@
                         <span class="text-2xl font-mono font-bold text-marker-blue mb-2">${code}</span>
                         <span class="text-sm font-bold text-slate-500 w-full truncate text-center" title="${previewWords}">候選: ${previewWords}</span>
                     `;
-                    buttonsContainer.appendChild(btn);
+                    buttonsContainer?.appendChild(btn);
                 });
                 multiCodeSelector.classList.remove('hidden-view');
             }
         }
 
         function selectMultiCode(selectedCode, word) {
-            const multiCodeSelector = document.getElementById('multi-code-selector');
-            if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
+            document.getElementById('multi-code-selector')?.classList.add('hidden-view');
             currentSearchCode = selectedCode;
             const wordsCount = memoryDictionary[currentSearchCode].length;
             const countBadge = `<span class="bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
-            searchHint.innerHTML = `字元 <span class="font-bold text-marker-black mx-1">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${selectedCode} </span> ${countBadge}`;
-            searchHint.classList.remove('hidden');
-            listContainer.classList.remove('hidden-view');
+            if(searchHint) searchHint.innerHTML = `字元 <span class="font-bold text-marker-black mx-1">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5"> ${selectedCode} </span> ${countBadge}`;
+            searchHint?.classList.remove('hidden');
+            listContainer?.classList.remove('hidden-view');
             renderList();
         }
 
         function renderList() {
             const words = memoryDictionary[currentSearchCode];
-            emptyState.classList.add('hidden-view');
-            listContainer.classList.remove('hidden-view');
-            candidateList.innerHTML = '';
+            emptyState?.classList.add('hidden-view');
+            listContainer?.classList.remove('hidden-view');
+            if(candidateList) candidateList.innerHTML = '';
 
             words.forEach((word, index) => {
                 const li = document.createElement('li');
@@ -1102,7 +1152,7 @@
                 rightDiv.appendChild(btnDown);
                 li.appendChild(leftDiv);
                 li.appendChild(rightDiv);
-                candidateList.appendChild(li);
+                candidateList?.appendChild(li);
             });
         }
 
@@ -1114,8 +1164,9 @@
             renderList();
         }
 
-        document.getElementById('btn-save-order').addEventListener('click', async () => {
+        document.getElementById('btn-save-order')?.addEventListener('click', async () => {
             const btn = document.getElementById('btn-save-order');
+            if(!btn) return;
             const originalHTML = btn.innerHTML;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>儲存中...`;
             btn.disabled = true;
@@ -1165,29 +1216,29 @@
             const addContent = document.getElementById('content-add-root');
 
             if (tabName === 'edit') {
-                editBtn.className = "marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none";
-                addBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
-                editContent.classList.remove('hidden-view');
-                addContent.classList.add('hidden-view');
+                if(editBtn) editBtn.className = "marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none";
+                if(addBtn) addBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
+                editContent?.classList.remove('hidden-view');
+                addContent?.classList.add('hidden-view');
             } else {
-                addBtn.className = "marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none";
-                editBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
-                addContent.classList.remove('hidden-view');
-                editContent.classList.add('hidden-view');
+                if(addBtn) addBtn.className = "marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none";
+                if(editBtn) editBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
+                addContent?.classList.remove('hidden-view');
+                editContent?.classList.add('hidden-view');
             }
         }
 
         const inputEditRoot = document.getElementById('input-edit-root');
         const btnClearRootSearch = document.getElementById('btn-clear-root-search');
-        inputEditRoot.addEventListener('input', () => {
-            if (inputEditRoot.value.length > 0) btnClearRootSearch.classList.remove('hidden');
-            else btnClearRootSearch.classList.add('hidden');
+        inputEditRoot?.addEventListener('input', () => {
+            if (inputEditRoot.value.length > 0) btnClearRootSearch?.classList.remove('hidden');
+            else btnClearRootSearch?.classList.add('hidden');
         });
-        btnClearRootSearch.addEventListener('click', () => {
-            inputEditRoot.value = '';
+        btnClearRootSearch?.addEventListener('click', () => {
+            if(inputEditRoot) inputEditRoot.value = '';
             btnClearRootSearch.classList.add('hidden');
-            inputEditRoot.focus();
-            document.getElementById('edit-root-results').innerHTML = `
+            inputEditRoot?.focus();
+            if(document.getElementById('edit-root-results')) document.getElementById('edit-root-results').innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center text-slate-400">
                     <i class="fa-solid fa-puzzle-piece text-5xl mb-3 opacity-50"></i>
                     <p class="font-bold">請輸入文字或按鍵碼進行查詢</p>
@@ -1196,8 +1247,9 @@
         });
 
         function findRootsForWord() {
-            const searchType = document.getElementById('select-search-type').value;
-            const inputVal = inputEditRoot.value.trim();
+            const selectType = document.getElementById('select-search-type');
+            const searchType = selectType ? selectType.value : 'word';
+            const inputVal = inputEditRoot ? inputEditRoot.value.trim() : '';
             if (!inputVal) { showToast("請先輸入要查詢的內容喔！", "error"); return; }
 
             let results = [];
@@ -1212,7 +1264,9 @@
             }
 
             const resultsDiv = document.getElementById('edit-root-results');
+            if(!resultsDiv) return;
             resultsDiv.innerHTML = '';
+            
             if (results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div class="h-full flex flex-col items-center justify-center text-slate-400">
@@ -1249,30 +1303,33 @@
         function startEditRoot(word, oldCode) {
             tempEditWord = word;
             tempEditOldCode = oldCode;
-            document.getElementById('modal-word').textContent = word;
-            document.getElementById('modal-old-code').textContent = oldCode;
-            document.getElementById('modal-input-code').value = oldCode;
+            if(document.getElementById('modal-word')) document.getElementById('modal-word').textContent = word;
+            if(document.getElementById('modal-old-code')) document.getElementById('modal-old-code').textContent = oldCode;
+            const inputCode = document.getElementById('modal-input-code');
+            if(inputCode) inputCode.value = oldCode;
+            
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            overlay.classList.remove('hidden');
-            void overlay.offsetWidth;
-            overlay.classList.replace('opacity-0', 'opacity-100');
-            content.classList.replace('scale-95', 'scale-100');
-            const inputField = document.getElementById('modal-input-code');
-            inputField.focus();
-            inputField.select();
+            overlay?.classList.remove('hidden');
+            if(overlay) void overlay.offsetWidth;
+            overlay?.classList.replace('opacity-0', 'opacity-100');
+            content?.classList.replace('scale-95', 'scale-100');
+            
+            inputCode?.focus();
+            inputCode?.select();
         }
 
         function closeModal() {
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            overlay.classList.replace('opacity-100', 'opacity-0');
-            content.classList.replace('scale-100', 'scale-95');
-            setTimeout(() => { overlay.classList.add('hidden'); }, 200);
+            overlay?.classList.replace('opacity-100', 'opacity-0');
+            content?.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => { overlay?.classList.add('hidden'); }, 200);
         }
 
         function confirmEditRoot() {
-            const newCode = document.getElementById('modal-input-code').value.trim();
+            const inputCode = document.getElementById('modal-input-code');
+            const newCode = inputCode ? inputCode.value.trim() : '';
             const word = tempEditWord;
             const oldCode = tempEditOldCode;
             if (!newCode || newCode === oldCode) { closeModal(); return; }
@@ -1291,15 +1348,18 @@
         }
 
         function addNewRoot() {
-            const word = document.getElementById('input-add-word').value.trim();
-            const code = document.getElementById('input-add-code').value.trim();
+            const inputAddWord = document.getElementById('input-add-word');
+            const inputAddCode = document.getElementById('input-add-code');
+            const word = inputAddWord ? inputAddWord.value.trim() : '';
+            const code = inputAddCode ? inputAddCode.value.trim() : '';
+            
             if (!word || !code) { showToast("中文字和按鍵碼都必須填寫喔！", "error"); return; }
             if (!memoryDictionary[code]) memoryDictionary[code] = [];
             if (memoryDictionary[code].includes(word)) { showToast(`按鍵碼 [${code}] 裡面已經有「${word}」這個字了！`, "error"); return; }
 
             memoryDictionary[code].push(word);
-            document.getElementById('input-add-word').value = '';
-            document.getElementById('input-add-code').value = '';
+            if(inputAddWord) inputAddWord.value = '';
+            if(inputAddCode) inputAddCode.value = '';
 
             saveToCloud().then(() => {
                 showToast(`新增成功！「${word}」(字根：${code}) 已存入主字典。`, "success");
@@ -1317,48 +1377,49 @@
             const uploadContent = document.getElementById('content-upload-phrase');
 
             [editBtn, addBtn, uploadBtn].forEach(btn => {
-                btn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
+                if(btn) btn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
             });
             [editContent, addContent, uploadContent].forEach(content => {
-                content.classList.add('hidden-view');
+                content?.classList.add('hidden-view');
             });
 
             if (tabName === 'edit') {
-                editBtn.classList.replace('bg-white', 'bg-marker-purple');
-                editBtn.classList.replace('text-marker-black', 'text-white');
-                editContent.classList.remove('hidden-view');
-                renderPhraseList();
+                editBtn?.classList.replace('bg-white', 'bg-marker-purple');
+                editBtn?.classList.replace('text-marker-black', 'text-white');
+                editContent?.classList.remove('hidden-view');
+                renderPhraseList(); 
             } else if (tabName === 'add') {
-                addBtn.classList.replace('bg-white', 'bg-marker-purple');
-                addBtn.classList.replace('text-marker-black', 'text-white');
-                addContent.classList.remove('hidden-view');
+                addBtn?.classList.replace('bg-white', 'bg-marker-purple');
+                addBtn?.classList.replace('text-marker-black', 'text-white');
+                addContent?.classList.remove('hidden-view');
             } else if (tabName === 'upload') {
-                uploadBtn.classList.replace('bg-white', 'bg-marker-purple');
-                uploadBtn.classList.replace('text-marker-black', 'text-white');
-                uploadContent.classList.remove('hidden-view');
+                uploadBtn?.classList.replace('bg-white', 'bg-marker-purple');
+                uploadBtn?.classList.replace('text-marker-black', 'text-white');
+                uploadContent?.classList.remove('hidden-view');
             }
         }
 
         const inputEditPhrase = document.getElementById('input-edit-phrase');
         const btnClearPhraseSearch = document.getElementById('btn-clear-phrase-search');
-        inputEditPhrase.addEventListener('input', () => {
-            if (inputEditPhrase.value.length > 0) btnClearPhraseSearch.classList.remove('hidden');
-            else btnClearPhraseSearch.classList.add('hidden');
-            currentPhrasePage = 1; // 輸入過濾條件時，回到第一頁
+        
+        inputEditPhrase?.addEventListener('input', () => {
+            if (inputEditPhrase.value.length > 0) btnClearPhraseSearch?.classList.remove('hidden');
+            else btnClearPhraseSearch?.classList.add('hidden');
+            currentPhrasePage = 1; 
             renderPhraseList();
         });
-        btnClearPhraseSearch.addEventListener('click', () => {
-            inputEditPhrase.value = '';
+        
+        btnClearPhraseSearch?.addEventListener('click', () => {
+            if(inputEditPhrase) inputEditPhrase.value = '';
             btnClearPhraseSearch.classList.add('hidden');
-            inputEditPhrase.focus();
+            inputEditPhrase?.focus();
             currentPhrasePage = 1;
             renderPhraseList();
         });
 
-        let currentPhraseTotalPages = 1;
-
         function getFlatPhrases(filterText = '') {
-            const searchType = document.getElementById('select-phrase-search-type').value;
+            const selectType = document.getElementById('select-phrase-search-type');
+            const searchType = selectType ? selectType.value : 'word';
             let list = [];
             for (const [code, words] of Object.entries(phraseDictionary)) {
                 for (const word of words) {
@@ -1377,7 +1438,7 @@
         }
 
         function renderPhraseList() {
-            const filterText = inputEditPhrase.value.trim();
+            const filterText = inputEditPhrase ? inputEditPhrase.value.trim() : '';
             const flatList = getFlatPhrases(filterText);
             currentPhraseTotalPages = Math.max(1, Math.ceil(flatList.length / PHRASES_PER_PAGE));
             
@@ -1389,6 +1450,8 @@
             const pageItems = flatList.slice(startIndex, endIndex);
 
             const resultsDiv = document.getElementById('edit-phrase-results');
+            if(!resultsDiv) return;
+            
             resultsDiv.innerHTML = '';
             
             if (flatList.length === 0) {
@@ -1436,7 +1499,7 @@
             }
 
             document.querySelectorAll('.phrase-page-info').forEach(el => {
-                el.textContent = `第 ${currentPhrasePage} 頁 / 共 ${currentPhraseTotalPages} 頁 (共 ${flatList.length} 筆)`;
+                el.textContent = `第 ${currentPhrasePage} 頁 / 共 ${currentPhraseTotalPages} 頁 (過濾結果: ${flatList.length} 筆)`;
             });
 
             document.querySelectorAll('.btn-phrase-first').forEach(btn => btn.disabled = currentPhrasePage === 1);
@@ -1453,42 +1516,51 @@
         function startEditPhrase(word, oldCode) {
             tempEditWord = word;
             tempEditOldCode = oldCode;
-            document.getElementById('modal-phrase-word').textContent = word;
-            document.getElementById('modal-phrase-old-code').textContent = oldCode;
-            document.getElementById('modal-input-phrase-code').value = oldCode;
+            if(document.getElementById('modal-phrase-word')) document.getElementById('modal-phrase-word').textContent = word;
+            if(document.getElementById('modal-phrase-old-code')) document.getElementById('modal-phrase-old-code').textContent = oldCode;
+            const inputCode = document.getElementById('modal-input-phrase-code');
+            if(inputCode) inputCode.value = oldCode;
             
             const overlay = document.getElementById('modal-phrase-overlay');
             const content = document.getElementById('modal-phrase-content');
-            overlay.classList.remove('hidden');
-            void overlay.offsetWidth;
-            overlay.classList.replace('opacity-0', 'opacity-100');
-            content.classList.replace('scale-95', 'scale-100');
-            const inputField = document.getElementById('modal-input-phrase-code');
-            inputField.focus();
-            inputField.select();
+            overlay?.classList.remove('hidden');
+            if(overlay) void overlay.offsetWidth;
+            overlay?.classList.replace('opacity-0', 'opacity-100');
+            content?.classList.replace('scale-95', 'scale-100');
+            
+            inputCode?.focus();
+            inputCode?.select();
         }
 
         function closePhraseModal() {
             const overlay = document.getElementById('modal-phrase-overlay');
             const content = document.getElementById('modal-phrase-content');
-            overlay.classList.replace('opacity-100', 'opacity-0');
-            content.classList.replace('scale-100', 'scale-95');
-            setTimeout(() => overlay.classList.add('hidden'), 200);
+            overlay?.classList.replace('opacity-100', 'opacity-0');
+            content?.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => overlay?.classList.add('hidden'), 200);
         }
 
         function confirmEditPhrase() {
-            const newCode = document.getElementById('modal-input-phrase-code').value.trim();
+            const inputCode = document.getElementById('modal-input-phrase-code');
+            const newCode = inputCode ? inputCode.value.trim() : '';
             const word = tempEditWord;
             const oldCode = tempEditOldCode;
             if (!newCode || newCode === oldCode) { closePhraseModal(); return; }
+
+            const extra = phraseExtraInfo[`${oldCode}|||${word}`];
 
             phraseDictionary[oldCode] = phraseDictionary[oldCode].filter(w => w !== word);
             if (phraseDictionary[oldCode].length === 0) delete phraseDictionary[oldCode];
             if (!phraseDictionary[newCode]) phraseDictionary[newCode] = [];
             if (!phraseDictionary[newCode].includes(word)) phraseDictionary[newCode].push(word);
 
+            if (extra) {
+                phraseExtraInfo[`${newCode}|||${word}`] = extra;
+                delete phraseExtraInfo[`${oldCode}|||${word}`];
+            }
+
             savePhraseToCloud().then(() => {
-                showToast('辭庫按鍵碼已成功修改為 ' + newCode, 'success');
+                showToast(`辭庫按鍵碼已成功修改為 ${newCode}`, "success");
                 renderPhraseList(); 
                 updateTotalCount();
                 closePhraseModal();
@@ -1496,9 +1568,11 @@
         }
 
         function deletePhrase(word, code) {
-            if(confirm('確定要刪除辭庫「' + word + '」(按鍵碼：' + code + ') 嗎？\n刪除後將無法復原。')) {
+            if(confirm(`確定要刪除辭庫「${word}」(按鍵碼：${code}) 嗎？\n刪除後將無法復原。`)) {
                 phraseDictionary[code] = phraseDictionary[code].filter(w => w !== word);
                 if (phraseDictionary[code].length === 0) delete phraseDictionary[code];
+                
+                delete phraseExtraInfo[`${code}|||${word}`];
                 
                 savePhraseToCloud().then(() => {
                     showToast("已成功刪除該筆辭庫資料！", "success");
@@ -1509,15 +1583,20 @@
         }
 
         function addNewPhrase() {
-            const word = document.getElementById('input-add-phrase-word').value.trim();
-            const code = document.getElementById('input-add-phrase-code').value.trim();
+            const inputWord = document.getElementById('input-add-phrase-word');
+            const inputCode = document.getElementById('input-add-phrase-code');
+            const word = inputWord ? inputWord.value.trim() : '';
+            const code = inputCode ? inputCode.value.trim() : '';
+            
             if (!word || !code) { showToast("辭庫文字和按鍵碼都必須填寫喔！", "error"); return; }
             if (!phraseDictionary[code]) phraseDictionary[code] = [];
             if (phraseDictionary[code].includes(word)) { showToast("這個辭庫紀錄已經存在囉！", "error"); return; }
 
             phraseDictionary[code].push(word);
-            document.getElementById('input-add-phrase-word').value = '';
-            document.getElementById('input-add-phrase-code').value = '';
+            phraseExtraInfo[`${code}|||${word}`] = 'c=1 d=1 t=1';
+
+            if(inputWord) inputWord.value = '';
+            if(inputCode) inputCode.value = '';
 
             savePhraseToCloud().then(() => {
                 showToast(`新增成功！辭庫「${word}」已存入白板。`, "success");
@@ -1530,12 +1609,21 @@
                 showToast("目前辭庫是空的，沒有資料可以匯出喔！", "error");
                 return;
             }
+            
             let finalContent = "";
+            if (phraseHeaders.length > 0) {
+                finalContent += phraseHeaders.join('\n') + '\n';
+            } else {
+                finalContent += `# Rime user dictionary\n#@/db_name\tcustom\n#@/db_type\tuserdb\n#@/rime_version\t1.0\n`;
+            }
+            
             for (const [code, words] of Object.entries(phraseDictionary)) {
                 for (const word of words) {
-                    finalContent += `${word}\t${code}\n`;
+                    const extra = phraseExtraInfo[`${code}|||${word}`] || 'c=1 d=1 t=1';
+                    finalContent += `${code}\t${word}\t${extra}\n`;
                 }
             }
+            
             const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1549,28 +1637,29 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast("已專屬匯出您的使用者辭庫檔！", 'success');
+            showToast("已專屬匯出您的使用者辭庫檔 (.userdb.txt)！", 'success');
         }
 
-        document.getElementById('btn-nav-upload').addEventListener('click', () => switchView('upload'));
-        document.getElementById('btn-nav-manage').addEventListener('click', () => switchView('manage'));
-        document.getElementById('btn-nav-roots').addEventListener('click', () => switchView('roots'));
-        document.getElementById('btn-nav-phrases').addEventListener('click', () => {
+        document.getElementById('btn-nav-upload')?.addEventListener('click', () => switchView('upload'));
+        document.getElementById('btn-nav-manage')?.addEventListener('click', () => switchView('manage'));
+        document.getElementById('btn-nav-roots')?.addEventListener('click', () => switchView('roots'));
+        document.getElementById('btn-nav-phrases')?.addEventListener('click', () => {
             switchView('phrases');
             switchPhraseTab('edit');
         });
         
         document.querySelectorAll('.btn-back-home').forEach(btn => btn.addEventListener('click', () => switchView('home')));
         
-        document.getElementById('tab-edit-root').addEventListener('click', () => switchRootTab('edit'));
-        document.getElementById('tab-add-root').addEventListener('click', () => switchRootTab('add'));
-        document.getElementById('btn-find-roots').addEventListener('click', findRootsForWord);
-        document.getElementById('btn-add-new-root').addEventListener('click', addNewRoot);
+        document.getElementById('tab-edit-root')?.addEventListener('click', () => switchRootTab('edit'));
+        document.getElementById('tab-add-root')?.addEventListener('click', () => switchRootTab('add'));
+        document.getElementById('btn-find-roots')?.addEventListener('click', findRootsForWord);
+        document.getElementById('btn-add-new-root')?.addEventListener('click', addNewRoot);
         
-        document.getElementById('tab-edit-phrase').addEventListener('click', () => switchPhraseTab('edit'));
-        document.getElementById('tab-add-phrase').addEventListener('click', () => switchPhraseTab('add'));
-        document.getElementById('tab-upload-phrase').addEventListener('click', () => switchPhraseTab('upload'));
-        document.getElementById('btn-add-new-phrase').addEventListener('click', addNewPhrase);
+        document.getElementById('tab-edit-phrase')?.addEventListener('click', () => switchPhraseTab('edit'));
+        document.getElementById('tab-add-phrase')?.addEventListener('click', () => switchPhraseTab('add'));
+        document.getElementById('tab-upload-phrase')?.addEventListener('click', () => switchPhraseTab('upload'));
+        document.getElementById('btn-find-phrases')?.addEventListener('click', findPhrases);
+        document.getElementById('btn-add-new-phrase')?.addEventListener('click', addNewPhrase);
         
         document.querySelectorAll('.btn-export-main-dict').forEach(btn => btn.addEventListener('click', exportDictionary));
         document.querySelectorAll('.btn-export-phrase-dict').forEach(btn => btn.addEventListener('click', exportPhraseDictionary));
@@ -1590,18 +1679,21 @@
             renderPhraseList();
         }));
 
-        document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
-        document.getElementById('btn-modal-confirm').addEventListener('click', confirmEditRoot);
-        document.getElementById('btn-phrase-modal-cancel').addEventListener('click', closePhraseModal);
-        document.getElementById('btn-phrase-modal-confirm').addEventListener('click', confirmEditPhrase);
+        document.getElementById('btn-modal-cancel')?.addEventListener('click', closeModal);
+        document.getElementById('btn-modal-confirm')?.addEventListener('click', confirmEditRoot);
+        document.getElementById('btn-phrase-modal-cancel')?.addEventListener('click', closePhraseModal);
+        document.getElementById('btn-phrase-modal-confirm')?.addEventListener('click', confirmEditPhrase);
         
-        document.getElementById('input-edit-root').addEventListener('keypress', (e) => { 
+        document.getElementById('input-edit-root')?.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') findRootsForWord(); 
         });
-        document.getElementById('modal-input-code').addEventListener('keypress', (e) => { 
+        document.getElementById('input-edit-phrase')?.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') findPhrases(); 
+        });
+        document.getElementById('modal-input-code')?.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') confirmEditRoot(); 
         });
-        document.getElementById('modal-input-phrase-code').addEventListener('keypress', (e) => { 
+        document.getElementById('modal-input-phrase-code')?.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') confirmEditPhrase(); 
         });
 
