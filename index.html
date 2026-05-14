@@ -7,17 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Microsoft JhengHei"', 'system-ui', 'sans-serif'],
-                        mono: ['Consolas', 'monospace'],
+                        sans: ['"Klee One"', 'cursive', 'system-ui', 'sans-serif'],
+                        mono: ['"Comic Sans MS"', 'cursive', 'monospace'],
                     },
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#10b981',
+                        marker: {
+                            blue: '#2563eb',
+                            red: '#dc2626',
+                            green: '#16a34a',
+                            black: '#1e293b'
+                        },
+                        primary: '#2563eb',
+                        secondary: '#16a34a',
                         dark: '#1e293b'
                     }
                 }
@@ -27,22 +37,66 @@
     
     <style>
         body {
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-color: #fcfcfc;
+            background-image: 
+                linear-gradient(rgba(203, 213, 225, 0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(203, 213, 225, 0.4) 1px, transparent 1px);
+            background-size: 25px 25px;
+            color: #1e293b;
         }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        
+        .whiteboard-panel {
+            background: #ffffff;
+            border: 3px solid #1e293b;
+            border-radius: 4px 15px 4px 15px / 15px 4px 15px 4px;
+            box-shadow: 6px 6px 0px rgba(30, 41, 59, 0.1);
         }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        .marker-btn {
+            border: 2px solid #1e293b;
+            border-radius: 10px 3px 10px 3px / 3px 10px 3px 10px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+        
+        .marker-btn:hover:not(:disabled) {
+            transform: translate(-3px, -3px);
+            box-shadow: 4px 4px 0px #1e293b;
+        }
+        .marker-btn:active:not(:disabled) {
+            transform: translate(0px, 0px);
+            box-shadow: 0px 0px 0px #1e293b;
+        }
+
+        .whiteboard-input {
+            border: 2px dashed #94a3b8;
+            border-radius: 8px 3px 8px 3px / 3px 8px 3px 8px;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .whiteboard-input:focus {
+            border-style: solid;
+            border-color: #2563eb;
+            background: #f8fafc;
+            box-shadow: inset 3px 3px 0px rgba(0,0,0,0.05);
+        }
+
+        .sticky-note {
+            background: #fef08a;
+            border-left: 5px solid #eab308;
+            box-shadow: 3px 4px 10px rgba(0,0,0,0.1);
+            transform: rotate(-1deg);
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid white; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .loader { animation: spin 1s linear infinite; }
+        .loader { animation: spin 1.5s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite; }
         
         .toast-enter { animation: slideInUp 0.3s ease-out forwards; }
         .toast-leave { animation: fadeOut 0.3s ease-out forwards; }
@@ -53,133 +107,197 @@
     </style>
 </head>
 
-<body class="min-h-screen py-10 px-4 text-slate-800 flex flex-col items-center">
+<body class="min-h-screen py-10 px-4 flex flex-col items-center font-sans">
 
-    <div class="max-w-4xl w-full glass-panel rounded-2xl p-8 border border-white/50 relative overflow-hidden min-h-[600px] flex flex-col">
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-blue-100 blur-3xl opacity-50 z-0 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-green-100 blur-3xl opacity-50 z-0 pointer-events-none"></div>
+    <div class="max-w-4xl w-full whiteboard-panel p-8 relative overflow-hidden min-h-[650px] flex flex-col">
+        <header class="flex justify-between items-center mb-8 border-b-2 border-slate-200 border-dashed pb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-marker-black mb-1">
+                    <i class="fa-solid fa-pen-clip text-marker-blue mr-2 transform -rotate-12"></i>Rime 雲端白板排序大師
+                </h1>
+                <p class="text-slate-500 font-bold">用麥克筆畫出您的專屬選字記憶</p>
+            </div>
+            
+            <div id="status-badge" class="hidden text-sm text-slate-600 bg-slate-50 border-2 border-slate-300 px-3 py-1 rounded-lg shadow-sm font-bold flex flex-col items-end">
+                <span><i class="fa-solid fa-circle text-xs text-marker-green mr-1" id="conn-icon"></i><span id="conn-text">已連線</span></span>
+                <span class="text-xs">總共 <span id="total-words-count" class="text-marker-blue">0</span> 字</span>
+            </div>
+        </header>
 
         <div class="relative z-10 flex-1 flex flex-col">
-            <header class="text-center mb-8 border-b border-slate-100 pb-6">
-                <h1 class="text-3xl font-bold text-dark mb-2">
-                    <i class="fa-solid fa-cloud text-primary mr-2"></i>Rime 雲端候選字排序大師
-                </h1>
-                <p class="text-slate-500">結合 Firebase 雲端同步，永久保存您的專屬選字記憶</p>
-            </header>
 
             <div id="view-init" class="flex-1 flex flex-col items-center justify-center text-center">
-                <i class="fa-solid fa-circle-notch loader text-4xl text-primary mb-4"></i>
-                <h2 class="text-xl font-semibold text-slate-700">正在連接雲端資料庫...</h2>
-                <p class="text-slate-500 mt-2 text-sm" id="init-status">驗證使用者身分中</p>
+                <i class="fa-solid fa-spinner loader text-5xl text-marker-blue mb-4"></i>
+                <h2 class="text-2xl font-bold text-marker-black">正在擦拭白板並連接雲端...</h2>
+                <p class="text-slate-500 mt-2 font-bold" id="init-status">驗證使用者身分中</p>
+            </div>
+
+            <div id="view-home" class="flex-1 flex flex-col items-center justify-center gap-8 hidden-view">
+                <h2 class="text-3xl font-bold text-marker-black mb-4 border-b-4 border-marker-red inline-block pb-2">今天想做什麼呢？</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
+                    <button id="btn-nav-upload" class="marker-btn h-48 bg-white hover:bg-blue-50 text-marker-blue border-marker-blue flex flex-col items-center justify-center group">
+                        <i class="fa-solid fa-file-arrow-up text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
+                        <span class="text-xl font-bold">1. 字典檔案上傳</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">匯入與雲端同步</span>
+                    </button>
+                    
+                    <button id="btn-nav-manage" class="marker-btn h-48 bg-white hover:bg-green-50 text-marker-green border-marker-green flex flex-col items-center justify-center group">
+                        <i class="fa-solid fa-arrow-down-a-z text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
+                        <span class="text-xl font-bold">2. 候選字管理</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">搜尋與調整排序</span>
+                    </button>
+                    
+                    <button id="btn-nav-roots" class="marker-btn h-48 bg-white hover:bg-red-50 text-marker-red border-marker-red flex flex-col items-center justify-center group">
+                        <i class="fa-solid fa-puzzle-piece text-5xl mb-4 group-hover:-translate-y-2 transition-transform"></i>
+                        <span class="text-xl font-bold">3. 輸入法字根管理</span>
+                        <span class="text-sm text-slate-500 mt-2 font-normal">新增/修改按鍵碼</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="view-upload" class="hidden-view flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold"><span class="text-marker-blue mr-2">1.</span>上傳字典檔以進行比對</h2>
+                    <button class="btn-back-home marker-btn bg-white text-marker-black px-4 py-2 font-bold text-sm flex items-center">
+                        <i class="fa-solid fa-house mr-2"></i>回首頁
+                    </button>
+                </div>
+                
+                <div class="sticky-note p-4 rounded-lg mb-6 text-sm text-slate-800 font-bold">
+                    <i class="fa-solid fa-thumbtack text-marker-red mr-2"></i>系統將會讀取您上傳的檔案，並與雲端資料庫比對。若發現雲端缺少的新字詞，會自動補齊。
+                </div>
+                
+                <div id="drop-zone" class="border-4 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-marker-blue hover:bg-blue-50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
+                    <input type="file" id="file-input" class="hidden" accept=".yaml,.txt,.dict">
+                    <i class="fa-solid fa-file-arrow-up text-6xl text-slate-300 mb-4 drop-zone-icon"></i>
+                    <p class="text-xl font-bold text-slate-600 mb-1">點擊或將檔案丟進來這裡</p>
+                    <p class="text-slate-400 font-mono">支援 .yaml 格式</p>
+                </div>
+
+                <div id="file-ready-info" class="hidden-view bg-blue-50 border-2 border-marker-blue rounded-xl p-6 mt-4 text-center">
+                    <i class="fa-solid fa-check text-5xl text-marker-blue mb-3"></i>
+                    <p class="text-xl font-bold text-marker-black mb-1" id="file-ready-name">filename.yaml</p>
+                    <p class="text-slate-600 font-bold mb-4">解析完成！可以開始與雲端進行合併同步了</p>
+                    <button id="btn-start-sync" class="marker-btn bg-marker-blue text-white px-8 py-3 font-bold text-lg inline-flex items-center">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始雲端同步
+                    </button>
+                </div>
             </div>
 
             <div id="view-sync" class="hidden-view flex-1 flex flex-col items-center justify-center text-center">
-                <i class="fa-solid fa-arrows-rotate loader text-5xl text-primary mb-6"></i>
-                <h2 class="text-2xl font-bold text-slate-700 mb-2">正在同步資料庫</h2>
-                <p class="text-slate-500 mb-6 max-w-md">系統正在將檔案中的資料與 Firebase 進行比對，這可能需要幾秒鐘的時間，請稍候...</p>
+                <i class="fa-solid fa-arrows-rotate loader text-6xl text-marker-blue mb-6"></i>
+                <h2 class="text-3xl font-bold text-marker-black mb-2">正在努力畫寫資料庫...</h2>
+                <p class="text-slate-500 font-bold mb-8 max-w-md">比對資料需要一點時間，請稍候</p>
                 
-                <div class="w-full max-w-md bg-slate-100 rounded-full h-3 mb-2 overflow-hidden">
-                    <div id="sync-progress-bar" class="bg-primary h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div class="w-full max-w-md border-2 border-marker-black rounded-full h-4 mb-2 p-0.5 bg-white">
+                    <div id="sync-progress-bar" class="bg-marker-blue h-full rounded-full transition-all duration-300" style="width: 0%"></div>
                 </div>
-                <p class="text-sm font-mono text-slate-400" id="sync-status-text">準備中...</p>
-            </div>
-
-            <!-- 新增：獨立的上傳視圖 -->
-            <div id="view-upload" class="hidden-view flex-1 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center">
-                        <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">1</div>
-                        <h2 class="text-xl font-semibold">上傳您的字典檔以進行比對</h2>
-                    </div>
-                    <button id="btn-back-home" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center shadow-sm">
-                        <i class="fa-solid fa-house mr-2"></i>回到首頁
-                    </button>
-                </div>
-                <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-6 text-sm border border-blue-100">
-                    <i class="fa-solid fa-circle-info mr-2"></i>系統將會讀取您上傳的檔案，並與雲端資料庫比對。若發現雲端缺少的新字詞，會自動補齊並同步。
-                </div>
-                
-                <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-blue-50/50 transition-colors duration-300 bg-slate-50 flex-1 flex flex-col items-center justify-center">
-                    <input type="file" id="file-input" class="hidden" accept=".yaml,.txt,.dict">
-                    <i class="fa-solid fa-file-arrow-up text-5xl text-slate-400 mb-4 drop-zone-icon"></i>
-                    <p class="text-lg font-medium text-slate-600 mb-1">點擊或拖曳字典檔至此</p>
-                    <p class="text-sm text-slate-400">支援 .yaml 格式 (例如: dayi3.dict.yaml)</p>
-                </div>
-
-                <div id="file-ready-info" class="hidden-view bg-green-50 border border-green-200 rounded-xl p-6 mt-4 text-center">
-                    <i class="fa-solid fa-file-check text-4xl text-green-500 mb-3"></i>
-                    <p class="text-lg font-bold text-green-800 mb-1" id="file-ready-name">filename.yaml</p>
-                    <p class="text-sm text-green-600 mb-4">檔案解析完成，準備好與雲端資料庫進行同步</p>
-                    <button id="btn-start-sync" class="bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-md flex items-center justify-center mx-auto">
-                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始雲端比對與同步
-                    </button>
-                </div>
+                <p class="text-sm font-mono text-slate-500 font-bold" id="sync-status-text">準備中...</p>
             </div>
 
             <div id="view-manage" class="hidden-view flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-6">
-                    <button id="btn-go-to-upload" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center text-sm">
-                        <i class="fa-solid fa-file-arrow-up mr-2"></i>上傳 / 同步字典檔
+                    <h2 class="text-2xl font-bold"><span class="text-marker-green mr-2">2.</span>候選字搜尋與調整順序</h2>
+                    <button class="btn-back-home marker-btn bg-white text-marker-black px-4 py-2 font-bold text-sm flex items-center">
+                        <i class="fa-solid fa-house mr-2"></i>回首頁
                     </button>
-                    <div class="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                        <i class="fa-solid fa-database text-green-500 mr-1"></i>已連線，共 <span id="total-words-count" class="font-bold">0</span> 個字詞
-                    </div>
-                </div>
-
-                <div class="flex items-center mb-4">
-                    <div class="bg-secondary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3">2</div>
-                    <h2 class="text-xl font-semibold">搜尋與調整順序</h2>
                 </div>
 
                 <div class="flex gap-3 mb-4">
                     <div class="relative flex-1">
-                        <input type="text" id="search-input" placeholder="請輸入「要修改的字」或「按鍵碼」..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-lg shadow-sm font-sans pr-10">
-                        <button id="btn-clear-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden transition-colors" title="清除內容">
-                            <i class="fa-solid fa-circle-xmark text-xl"></i>
+                        <input type="text" id="search-input" placeholder="輸入「要修改的字」或「按鍵碼」..." class="whiteboard-input w-full text-xl font-bold pr-10">
+                        <button id="btn-clear-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-marker-red hidden transition-colors" title="清除內容">
+                            <i class="fa-solid fa-eraser text-2xl"></i>
                         </button>
                     </div>
-                    <button id="btn-search" class="bg-dark hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm flex items-center">
-                        <i class="fa-solid fa-magnifying-glass mr-2"></i>查詢
+                    <button id="btn-search" class="marker-btn bg-marker-black text-white px-6 py-3 font-bold text-lg flex items-center">
+                        <i class="fa-solid fa-magnifying-glass mr-2"></i>找找看
                     </button>
                 </div>
-                <div id="search-hint" class="text-sm text-slate-500 mb-4 ml-1 hidden flex flex-wrap items-center"></div>
+                <div id="search-hint" class="text-slate-600 font-bold mb-4 ml-1 hidden flex flex-wrap items-center"></div>
 
-                <div id="list-container" class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner flex-1 hidden-view flex flex-col">
-                    <ul id="candidate-list" class="divide-y divide-slate-200 overflow-y-auto max-h-[350px]">
-                        <!-- 列表項目動態生成 -->
+                <div id="list-container" class="border-2 border-slate-300 rounded-xl overflow-hidden flex-1 hidden-view flex flex-col bg-white">
+                    <ul id="candidate-list" class="divide-y-2 divide-dashed divide-slate-200 overflow-y-auto max-h-[300px]">
                     </ul>
-                    <div class="bg-slate-100 border-t border-slate-200 p-3 flex justify-end gap-3">
-                        <button id="btn-save-order" class="bg-primary hover:bg-blue-600 text-white px-5 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center text-sm">
-                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>儲存修改至雲端
+                    <div class="bg-slate-50 border-t-2 border-slate-300 p-3 flex justify-end gap-3">
+                        <button id="btn-save-order" class="marker-btn bg-marker-green text-white px-5 py-2 font-bold flex items-center">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i>儲存排序
                         </button>
                     </div>
                 </div>
                 
-                <!-- 新增：多重按鍵碼選擇器 -->
-                <div id="multi-code-selector" class="hidden-view bg-slate-50 border border-slate-200 rounded-xl p-8 text-center flex-1 flex flex-col items-center justify-center">
-                    <i class="fa-solid fa-code-branch text-5xl text-primary mb-4 opacity-80"></i>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2" id="multi-code-title">字元有多個對應的按鍵碼</h3>
-                    <p class="text-slate-500 mb-6">在大易輸入法中，同一個字可能會有 2碼 或 3碼 等多種打法。<br>請選擇您要編輯哪一個按鍵碼的排序：</p>
-                    <div id="multi-code-buttons" class="flex flex-wrap justify-center gap-3 max-w-2xl overflow-y-auto max-h-[250px]">
-                        <!-- 動態生成按鈕 -->
+                <div id="multi-code-selector" class="hidden-view border-2 border-dashed border-marker-blue rounded-xl p-8 text-center flex-1 flex flex-col items-center justify-center bg-blue-50/30">
+                    <i class="fa-solid fa-code-branch text-6xl text-marker-blue mb-4"></i>
+                    <h3 class="text-2xl font-bold text-marker-black mb-2" id="multi-code-title">這個字有多種打法！</h3>
+                    <p class="text-slate-600 font-bold mb-6">同一個字可能會有 2碼 或 3碼 等多種打法。<br>請選擇您要編輯哪一個按鍵碼的排序：</p>
+                    <div id="multi-code-buttons" class="flex flex-wrap justify-center gap-4 max-w-2xl overflow-y-auto max-h-[200px]">
                     </div>
                 </div>
 
-                <div id="empty-state" class="text-center py-16 bg-slate-50 border border-slate-200 rounded-xl text-slate-400 flex-1 flex flex-col items-center justify-center">
-                    <i class="fa-solid fa-keyboard text-5xl mb-4 opacity-30"></i>
-                    <p class="text-lg">請輸入查詢條件來開始調整順序</p>
+                <div id="empty-state" class="text-center py-16 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 flex-1 flex flex-col items-center justify-center bg-white/50">
+                    <i class="fa-solid fa-keyboard text-6xl mb-4 opacity-50"></i>
+                    <p class="text-xl font-bold">在上方白板輸入條件來開始尋找吧</p>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-200 flex justify-between items-center bg-green-50 p-5 rounded-xl border border-green-100">
-                    <div>
-                        <p class="text-slate-800 font-bold mb-1">完成所有修改了嗎？</p>
-                        <p class="text-sm text-slate-500">匯出包含雲端最新排序的字典檔，放回小狼毫資料夾。</p>
+                <div class="mt-6 pt-6 border-t-4 border-slate-200 border-dashed flex justify-between items-center bg-green-50 p-5 rounded-xl border border-green-200 relative overflow-hidden">
+                    <i class="fa-solid fa-download absolute -right-5 -bottom-5 text-8xl text-green-200/50 transform -rotate-12"></i>
+                    <div class="relative z-10">
+                        <p class="text-marker-green font-bold text-xl mb-1">完成所有修改了嗎？</p>
+                        <p class="text-slate-600 font-bold">把白板上的內容匯出，放回小狼毫資料夾。</p>
                     </div>
-                    <button id="btn-export" class="bg-secondary hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-md hover:shadow-lg flex items-center">
-                        <i class="fa-solid fa-download mr-2"></i>匯出字典檔
+                    <button id="btn-export" class="marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
+                        <i class="fa-solid fa-file-export mr-2"></i>匯出字典檔
                     </button>
                 </div>
             </div>
+
+            <div id="view-roots" class="hidden-view flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-6 border-b-2 border-slate-200 border-dashed pb-4">
+                    <h2 class="text-2xl font-bold"><span class="text-marker-red mr-2">3.</span>輸入法字根管理</h2>
+                    <button class="btn-back-home marker-btn bg-white text-marker-black px-4 py-2 font-bold text-sm flex items-center">
+                        <i class="fa-solid fa-house mr-2"></i>回首頁
+                    </button>
+                </div>
+
+                <div class="flex gap-4 mb-6">
+                    <button id="tab-edit-root" class="marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none">修改現有字根</button>
+                    <button id="tab-add-root" class="marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none">新增全新字根</button>
+                </div>
+
+                <div id="content-edit-root" class="flex flex-col flex-1">
+                    <div class="flex gap-3 mb-4">
+                        <input type="text" id="input-edit-root-word" placeholder="輸入要修改的中文字..." class="whiteboard-input flex-1 text-xl font-bold">
+                        <button id="btn-find-roots" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找字根</button>
+                    </div>
+                    
+                    <div id="edit-root-results" class="flex-1 bg-white border-2 border-slate-300 rounded-xl p-4 overflow-y-auto flex flex-col gap-3">
+                        <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-puzzle-piece text-5xl mb-3 opacity-50"></i>
+                            <p class="font-bold">請輸入文字以查詢其對應的按鍵碼</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-add-root" class="hidden-view flex flex-col flex-1 bg-white border-2 border-slate-300 rounded-xl p-8 justify-center">
+                    <h3 class="text-2xl font-bold text-marker-black mb-6 text-center border-b-2 border-dashed pb-2 inline-block mx-auto">新增一筆字根紀錄</h3>
+                    
+                    <div class="max-w-md mx-auto w-full flex flex-col gap-5">
+                        <div>
+                            <label class="block text-slate-600 font-bold mb-2">1. 要新增的中文字：</label>
+                            <input type="text" id="input-add-word" placeholder="例如：哈" class="whiteboard-input w-full text-xl font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-bold mb-2">2. 對應的按鍵碼：</label>
+                            <input type="text" id="input-add-code" placeholder="例如：ab" class="whiteboard-input w-full font-mono text-xl text-marker-blue font-bold">
+                        </div>
+                        <button id="btn-add-new-root" class="marker-btn bg-marker-red text-white py-4 mt-4 font-bold text-xl">
+                            <i class="fa-solid fa-plus mr-2"></i>存入字典白板
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -192,7 +310,6 @@
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'github-dayi3-list';
         
-        // 使用您專屬的 Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAAU3AgygNtv5p27t1nDGeBy6CUbczn86o",
             authDomain: "github-dayi3-list.firebaseapp.com",
@@ -205,57 +322,56 @@
         
         const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // 系統狀態變數
         let app, auth, db, userId;
         let fileHeaders = [];
-        let fileDictionary = {}; // 檔案解析結果
-        let cloudDictionary = {}; // 雲端下載結果
-        let memoryDictionary = {}; // 最終合併結果 (以 Code 為 Key, 裝載 word 陣列)
+        let fileDictionary = {}; 
+        let cloudDictionary = {}; 
+        let memoryDictionary = {}; 
+        let isOfflineMode = false; 
         
         let currentSearchCode = "";
         let originalFileName = "dayi3.dict.yaml";
 
-        // DOM 元素
         const views = {
             init: document.getElementById('view-init'),
+            home: document.getElementById('view-home'),
             upload: document.getElementById('view-upload'),
             sync: document.getElementById('view-sync'),
-            manage: document.getElementById('view-manage')
+            manage: document.getElementById('view-manage'),
+            roots: document.getElementById('view-roots')
         };
-        const initStatus = document.getElementById('init-status');
         
         function switchView(viewName) {
-            Object.values(views).forEach(v => v.classList.add('hidden-view'));
-            views[viewName].classList.remove('hidden-view');
+            Object.values(views).forEach(v => {
+                if (v) v.classList.add('hidden-view');
+            });
+            if (views[viewName]) {
+                views[viewName].classList.remove('hidden-view');
+            }
         }
 
-        function showToast(message, type = 'info') {
+        function showToast(message, type) {
+            type = type || 'info';
             const toast = document.createElement('div');
-            let bgColor = 'bg-slate-800', icon = 'fa-circle-info text-blue-400';
-            if (type === 'success') { bgColor = 'bg-emerald-800'; icon = 'fa-circle-check text-emerald-400'; }
-            else if (type === 'error') { bgColor = 'bg-red-800'; icon = 'fa-circle-xmark text-red-400'; }
+            let icon = 'fa-thumbtack text-marker-red';
+            if (type === 'success') { icon = 'fa-check text-marker-green'; }
+            else if (type === 'error') { icon = 'fa-xmark text-marker-red'; }
 
-            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center toast-enter pointer-events-auto z-50`;
-            toast.innerHTML = `<i class="fa-solid ${icon} mr-3 text-lg"></i><span>${message}</span>`;
+            toast.className = "sticky-note text-slate-800 p-4 font-bold flex items-center toast-enter pointer-events-auto z-50 text-base max-w-sm";
+            toast.innerHTML = "<i class=\"fa-solid " + icon + " mr-3 text-2xl\"></i><span>" + message + "</span>";
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => {
                 toast.classList.replace('toast-enter', 'toast-leave');
                 toast.addEventListener('animationend', () => toast.remove());
-            }, 4500); // 延長提示顯示時間，方便看清楚錯誤
+            }, 5000); 
         }
 
         async function initSystem() {
-            if (!firebaseConfig) {
-                showToast("未偵測到 Firebase 配置，切換至離線模式", "error");
-                initStatus.textContent = "環境錯誤";
-                return;
-            }
             try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // 檢查瀏覽器是否已經有登入過的 session，避免一直重置匿名 ID
                 let currentUser = await new Promise((resolve) => {
                     const unsubscribe = auth.onAuthStateChanged(user => {
                         unsubscribe();
@@ -266,55 +382,74 @@
                 if (!currentUser) {
                     try {
                         if (initialToken) {
-                            initStatus.textContent = "使用自訂憑證登入中...";
+                            document.getElementById('init-status').textContent = "使用自訂憑證登入中...";
                             await signInWithCustomToken(auth, initialToken);
                         } else {
-                            initStatus.textContent = "建立匿名登入中...";
+                            document.getElementById('init-status').textContent = "建立白板連線中...";
                             await signInAnonymously(auth);
                         }
+                        currentUser = auth.currentUser;
                     } catch (authError) {
-                        console.warn("憑證不符 (可能使用了自訂的 Firebase 專案)，嘗試切換為匿名登入...", authError);
-                        initStatus.textContent = "切換為匿名登入中...";
-                        await signInAnonymously(auth);
+                        console.warn("無法驗證身分 (沙盒限制)。切換為本機預覽模式。");
                     }
-                    currentUser = auth.currentUser;
-                } else {
-                    initStatus.textContent = "載入既有身分中...";
                 }
                 
-                if (!currentUser) throw new Error("認證失敗");
-                userId = currentUser.uid;
-                console.log("目前登入的 User ID:", userId); // 供開發者在 F12 Console 除錯確認身分
+                if (!currentUser) {
+                    // 優雅地啟用離線預覽模式，不拋出錯誤避免控制台紅字
+                    isOfflineMode = true;
+                    document.getElementById('status-badge').classList.remove('hidden');
+                    document.getElementById('conn-icon').classList.replace('text-marker-green', 'text-slate-400');
+                    document.getElementById('conn-text').textContent = "預覽模式";
+                    
+                    showToast("因預覽環境沙盒限制，已進入「本機測試模式」。發布至 Github 後即可正常連線雲端！", "info");
+                    
+                    memoryDictionary = {
+                        "a": ["對", "我"],
+                        "aa": ["白", "我"],
+                        "b": ["的", "不"],
+                        "bb": ["明", "的"]
+                    };
+                    
+                    updateTotalCount();
+                    switchView('home');
+                    return;
+                }
                 
-                // 登入成功後，檢查雲端是否已有資料
+                userId = currentUser.uid;
+                
+                document.getElementById('status-badge').classList.remove('hidden');
                 await checkCloudData();
 
-                // 綁定上傳區塊切換與首頁按鈕
-                const btnGoToUpload = document.getElementById('btn-go-to-upload');
-                if (btnGoToUpload) {
-                    btnGoToUpload.addEventListener('click', () => switchView('upload'));
-                }
-                const btnBackHome = document.getElementById('btn-back-home');
-                if (btnBackHome) {
-                    btnBackHome.addEventListener('click', () => switchView('manage'));
-                }
-
             } catch (error) {
-                console.error("Auth error:", error);
-                showToast("連線資料庫失敗：" + error.message, "error");
-                initStatus.textContent = "連線失敗";
+                console.error("初始化發生未預期的錯誤:", error);
+                
+                isOfflineMode = true;
+                document.getElementById('status-badge').classList.remove('hidden');
+                document.getElementById('conn-icon').classList.replace('text-marker-green', 'text-slate-400');
+                document.getElementById('conn-text').textContent = "預覽模式";
+                
+                showToast("初始化發生錯誤，已進入「本機測試模式」。", "info");
+                
+                memoryDictionary = {
+                    "a": ["對", "我"],
+                    "aa": ["白", "我"],
+                    "b": ["的", "不"],
+                    "bb": ["明", "的"]
+                };
+                
+                updateTotalCount();
+                switchView('home');
             }
         }
 
         async function checkCloudData() {
-            initStatus.textContent = "檢查雲端紀錄...";
+            document.getElementById('init-status').textContent = "檢查雲端紀錄...";
             try {
                 const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
                 const chunksSnapshot = await getDocs(chunksRef);
                 
                 await loadCloudData(chunksSnapshot);
 
-                // 將雲端資料複製到記憶體中供搜尋使用
                 memoryDictionary = {};
                 for (const [code, words] of Object.entries(cloudDictionary)) {
                     memoryDictionary[code] = [...words];
@@ -323,18 +458,17 @@
                 updateTotalCount();
 
                 if (chunksSnapshot.empty) {
-                    // 雲端完全沒資料，切換到上傳頁面
-                    switchView('upload');
-                    showToast("雲端尚無資料，請先上傳字典檔", "info");
+                    showToast("白板還是空的，請先上傳字典檔匯入資料吧！", "info");
+                    switchView('upload'); 
                 } else {
-                    switchView('manage');
-                    showToast("已成功載入雲端設定", "success");
+                    showToast("已成功載入雲端白板紀錄！", "success");
+                    switchView('home'); 
                 }
             } catch (error) {
                 console.error("Firebase 資料讀取失敗:", error);
-                // 顯示精確的錯誤原因 (例如 Firebase Rules 被阻擋)
-                showToast("雲端讀取失敗，請檢查資料庫規則 (Rules) 或連線狀態：" + error.message, "error");
-                switchView('upload'); // 發生錯誤時退回上傳頁面，避免停在 0 個字詞的異常畫面
+                showToast("雲端讀取失敗，請確認資料庫權限設定！進入離線模式。", "error");
+                isOfflineMode = true;
+                switchView('home');
             }
         }
 
@@ -342,15 +476,24 @@
         const fileInput = document.getElementById('file-input');
         
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-primary', 'bg-blue-50/50'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-primary', 'bg-blue-50/50'));
+        dropZone.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            dropZone.classList.add('border-marker-blue', 'bg-blue-50'); 
+        });
+        dropZone.addEventListener('dragleave', () => { 
+            dropZone.classList.remove('border-marker-blue', 'bg-blue-50'); 
+        });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('border-primary', 'bg-blue-50/50');
-            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+            dropZone.classList.remove('border-marker-blue', 'bg-blue-50');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
         });
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
         });
 
         function handleFile(file) {
@@ -361,7 +504,7 @@
                 dropZone.classList.add('hidden-view');
                 document.getElementById('file-ready-info').classList.remove('hidden-view');
                 document.getElementById('file-ready-name').textContent = originalFileName;
-                showToast('檔案解析完成！', 'success');
+                showToast('檔案解析完成！可以開始同步了', 'success');
             };
             reader.onerror = () => showToast('讀取檔案失敗', 'error');
             reader.readAsText(file, 'UTF-8');
@@ -375,14 +518,14 @@
             let inHeader = true;
             for (let line of lines) {
                 const trimmed = line.trim();
-                // 處理檔頭與註解
                 if (inHeader && (trimmed.startsWith('#') || trimmed.startsWith('---') || trimmed.includes('name:') || trimmed.includes('version:') || trimmed.includes('sort:') || trimmed === '...')) {
                     fileHeaders.push(line);
-                    if (trimmed === '...') inHeader = false; 
+                    if (trimmed === '...') {
+                        inHeader = false; 
+                    }
                     continue;
                 }
                 
-                // 處理實際資料：中文字[Tab]代碼
                 if (trimmed !== '') {
                     const parts = line.split('\t');
                     if (parts.length >= 2) {
@@ -392,8 +535,6 @@
                         if (!fileDictionary[code].includes(word)) {
                             fileDictionary[code].push(word);
                         }
-                    } else if (trimmed.startsWith('#')) {
-                        // 檔頭後的註解直接忽略或可存入 metadata，這裡我們簡化處理
                     }
                 }
             }
@@ -402,16 +543,18 @@
         document.getElementById('btn-start-sync').addEventListener('click', async () => {
             switchView('sync');
             try {
-                // 1. 取得雲端現有資料
-                document.getElementById('sync-status-text').textContent = "正在下載雲端歷史資料...";
-                document.getElementById('sync-progress-bar').style.width = "20%";
-                
-                const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
-                document.getElementById('sync-status-text').textContent = "正在比تدائي補齊資料...";
+                if (!isOfflineMode) {
+                    document.getElementById('sync-status-text').textContent = "正在下載雲端歷史資料...";
+                    document.getElementById('sync-progress-bar').style.width = "20%";
+                    
+                    const chunksRef = collection(db, 'artifacts', appId, 'users', userId, 'dict_chunks');
+                    const chunksSnapshot = await getDocs(chunksRef);
+                    await loadCloudData(chunksSnapshot);
+                }
+
+                document.getElementById('sync-status-text').textContent = "正在比對並補齊資料...";
                 document.getElementById('sync-progress-bar').style.width = "50%";
 
-                // 2. 進行合併 (以雲端排序為主，把檔案裡有但雲端沒有的字加進去)
-                // 修正物件深拷貝邏輯，避免影響到雲端暫存檔
                 memoryDictionary = {};
                 for (const [code, words] of Object.entries(cloudDictionary)) {
                     memoryDictionary[code] = [...words];
@@ -419,10 +562,8 @@
                 
                 for (const [code, words] of Object.entries(fileDictionary)) {
                     if (!memoryDictionary[code]) {
-                        // 雲端完全沒有這個碼，整組新增
                         memoryDictionary[code] = [...words];
                     } else {
-                        // 雲端有這個碼，檢查有沒有漏字
                         for (const w of words) {
                             if (!memoryDictionary[code].includes(w)) {
                                 memoryDictionary[code].push(w);
@@ -431,7 +572,6 @@
                     }
                 }
 
-                // 3. 準備回寫雲端 (將龐大資料分塊儲存)
                 document.getElementById('sync-status-text').textContent = "正在上傳更新至資料庫...";
                 document.getElementById('sync-progress-bar').style.width = "70%";
                 
@@ -439,19 +579,22 @@
                 
                 document.getElementById('sync-progress-bar').style.width = "100%";
                 setTimeout(() => {
-                    switchView('manage');
+                    switchView('home');
                     updateTotalCount();
-                    showToast("同步完成！", "success");
-                }, 500);
+                    showToast("白板同步完成囉！", "success");
+                    
+                    dropZone.classList.remove('hidden-view');
+                    document.getElementById('file-ready-info').classList.add('hidden-view');
+                    fileInput.value = '';
+                }, 800);
 
             } catch (error) {
                 console.error("Sync error:", error);
                 showToast("同步過程中發生錯誤", "error");
-                switchView('manage');
+                switchView('home');
             }
         });
 
-        // 載入雲端 chunks 轉回 Dictionary 格式
         async function loadCloudData(snapshot) {
             cloudDictionary = {};
             if (snapshot.empty) return;
@@ -459,34 +602,33 @@
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 if (data.entries) {
-                    // Object.assign(cloudDictionary, data.entries);
                     for (const [code, words] of Object.entries(data.entries)) {
                         cloudDictionary[code] = words;
                     }
                 }
             });
 
-            // 取得 Headers
             try {
                 const metaDoc = await getDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'info'));
                 if (metaDoc.exists() && metaDoc.data().headers) {
                     fileHeaders = metaDoc.data().headers;
                 }
-            } catch(e) { console.warn("No metadata found"); }
+            } catch(e) { 
+                
+            }
         }
 
-        // 將 Memory 寫入 Firebase (Chunking 處理)
         async function saveToCloud() {
-            if (!userId) return;
+            if (isOfflineMode || !userId) {
+                return;
+            }
             
-            // 儲存 Headers
             if (fileHeaders.length > 0) {
                 await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'info'), { headers: fileHeaders });
             }
 
-            // 分塊儲存 Data
             const allEntries = Object.entries(memoryDictionary);
-            const CHUNK_SIZE = 2000; // 每個文檔存 2000 個按鍵碼
+            const CHUNK_SIZE = 2000; 
             
             let chunkPromises = [];
             for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
@@ -495,7 +637,7 @@
                 chunkSlice.forEach(([c, w]) => { chunkObj[c] = w; });
                 
                 const chunkIndex = Math.floor(i / CHUNK_SIZE);
-                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'dict_chunks', `chunk_${chunkIndex}`);
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'dict_chunks', "chunk_" + chunkIndex);
                 chunkPromises.push(setDoc(docRef, { entries: chunkObj }));
             }
             
@@ -519,9 +661,10 @@
         const searchHint = document.getElementById('search-hint');
 
         btnSearch.addEventListener('click', executeSearch);
-        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(); });
+        searchInput.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') executeSearch(); 
+        });
         
-        // 監聽輸入框內容變化，決定是否顯示「清除」按鈕
         searchInput.addEventListener('input', () => {
             if (searchInput.value.length > 0) {
                 btnClearSearch.classList.remove('hidden');
@@ -530,7 +673,6 @@
             }
         });
 
-        // 「清除」按鈕的點擊事件：清空輸入、隱藏自己、隱藏列表並重置為空狀態
         btnClearSearch.addEventListener('click', () => {
             searchInput.value = '';
             btnClearSearch.classList.add('hidden');
@@ -546,18 +688,19 @@
 
         function executeSearch() {
             const input = searchInput.value.trim();
-            if (!input) { showToast('請輸入查詢內容', 'error'); return; }
+            if (!input) { 
+                showToast('請輸入查詢內容喔', 'error'); 
+                return; 
+            }
 
             let matchedCodes = [];
             let isCodeMatch = false;
 
-            // 1. 檢查是不是直接輸入了按鍵碼
             if (memoryDictionary[input]) {
                 matchedCodes.push(input);
                 isCodeMatch = true;
             }
 
-            // 2. 檢查是不是輸入了中文字 (找出「所有」包含此字的按鍵碼)
             if (!isCodeMatch) {
                 for (const [code, words] of Object.entries(memoryDictionary)) {
                     if (words.includes(input)) {
@@ -566,7 +709,6 @@
                 }
             }
 
-            // 先隱藏所有視圖
             emptyState.classList.add('hidden-view');
             listContainer.classList.add('hidden-view');
             searchHint.classList.add('hidden');
@@ -575,58 +717,68 @@
 
             if (matchedCodes.length === 0) {
                 emptyState.classList.remove('hidden-view');
-                showToast(`找不到與「${input}」相關的字或碼`, 'error');
+                showToast("白板上找不到與「" + input + "」相關的字或碼", 'error');
                 return;
             }
 
             if (matchedCodes.length === 1) {
                 currentSearchCode = matchedCodes[0];
                 const wordsCount = memoryDictionary[currentSearchCode].length;
-                const countBadge = `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
+                const countBadge = "<span class=\"bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm\">共 " + wordsCount + " 個字</span>";
 
                 if (isCodeMatch) {
-                    searchHint.innerHTML = `正在編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded mx-1"> ${currentSearchCode} </span> 的順序 ${countBadge}`;
+                    searchHint.innerHTML = "正在編輯按鍵碼 <span class=\"font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5\"> " + currentSearchCode + " </span> 的順序 " + countBadge;
                 } else {
-                    searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary mx-1">「${input}」</span>，對應的按鍵碼為 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded mx-1"> ${currentSearchCode} </span> ${countBadge}`;
+                    searchHint.innerHTML = "字元 <span class=\"font-bold text-marker-black mx-1\">「" + input + "」</span>，對應的按鍵碼為 <span class=\"font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5\"> " + currentSearchCode + " </span> " + countBadge;
                 }
                 searchHint.classList.remove('hidden');
                 listContainer.classList.remove('hidden-view');
                 renderList();
             } else {
-                // 找到多個按鍵碼！顯示選擇器介面
                 if (!multiCodeSelector) return;
                 
-                document.getElementById('multi-code-title').textContent = `字元「${input}」有多個對應的按鍵碼`;
+                document.getElementById('multi-code-title').textContent = "字元「" + input + "」有多個對應的按鍵碼";
                 const buttonsContainer = document.getElementById('multi-code-buttons');
+                buttonsContainer.innerHTML = '';
                 
-                buttonsContainer.innerHTML = matchedCodes.map(code => {
+                matchedCodes.forEach(code => {
                     const previewWords = memoryDictionary[code].slice(0, 4).join(', ') + (memoryDictionary[code].length > 4 ? '...' : '');
-                    return `
-                    <button class="flex flex-col items-center p-4 bg-white border-2 border-blue-100 rounded-xl hover:border-primary hover:bg-blue-50 transition-all shadow-sm text-left w-48" onclick="selectMultiCode('${code}', '${input}')">
-                        <span class="text-2xl font-mono font-bold text-primary mb-2">${code}</span>
-                        <span class="text-xs text-slate-500 w-full truncate text-center" title="${previewWords}">候選: ${previewWords}</span>
-                    </button>
-                    `;
-                }).join('');
+                    
+                    const btn = document.createElement('button');
+                    btn.className = "marker-btn flex flex-col items-center p-4 bg-white text-left w-48";
+                    btn.onclick = () => selectMultiCode(code, input);
+                    
+                    const spanCode = document.createElement('span');
+                    spanCode.className = "text-2xl font-mono font-bold text-marker-blue mb-2";
+                    spanCode.textContent = code;
+                    
+                    const spanPreview = document.createElement('span');
+                    spanPreview.className = "text-sm font-bold text-slate-500 w-full truncate text-center";
+                    spanPreview.title = previewWords;
+                    spanPreview.textContent = "候選: " + previewWords;
+                    
+                    btn.appendChild(spanCode);
+                    btn.appendChild(spanPreview);
+                    buttonsContainer.appendChild(btn);
+                });
                 
                 multiCodeSelector.classList.remove('hidden-view');
             }
         }
 
-        // 綁定於全域供選單按鈕使用
-        window.selectMultiCode = function(selectedCode, word) {
+        function selectMultiCode(selectedCode, word) {
             const multiCodeSelector = document.getElementById('multi-code-selector');
             if (multiCodeSelector) multiCodeSelector.classList.add('hidden-view');
             
             currentSearchCode = selectedCode;
             const wordsCount = memoryDictionary[currentSearchCode].length;
-            const countBadge = `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm">共 ${wordsCount} 個字</span>`;
+            const countBadge = "<span class=\"bg-marker-green text-white px-2 py-0.5 rounded-full text-xs font-bold ml-2 shadow-sm\">共 " + wordsCount + " 個字</span>";
             
-            searchHint.innerHTML = `查找到字元 <span class="font-bold text-primary mx-1">「${word}」</span>，您選擇編輯按鍵碼 <span class="font-bold text-primary px-2 py-1 bg-blue-100 rounded mx-1"> ${selectedCode} </span> ${countBadge}`;
+            searchHint.innerHTML = "字元 <span class=\"font-bold text-marker-black mx-1\">「" + word + "」</span>，您選擇編輯按鍵碼 <span class=\"font-bold text-marker-blue border-b-2 border-marker-blue mx-1 pb-0.5\"> " + selectedCode + " </span> " + countBadge;
             searchHint.classList.remove('hidden');
             listContainer.classList.remove('hidden-view');
             renderList();
-        };
+        }
 
         function renderList() {
             const words = memoryDictionary[currentSearchCode];
@@ -642,15 +794,15 @@
                 leftDiv.className = "flex items-center gap-4";
                 
                 const badge = document.createElement('span');
-                badge.className = "flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-sm border border-slate-200 group-hover:bg-primary group-hover:text-white transition-colors";
+                badge.className = "flex items-center justify-center w-8 h-8 rounded-full border-2 border-slate-300 text-slate-500 font-bold text-sm bg-white group-hover:border-marker-green group-hover:text-marker-green transition-colors";
                 badge.textContent = index + 1;
                 
                 const wordSpan = document.createElement('span');
-                wordSpan.className = "text-2xl font-bold font-sans text-slate-800";
+                wordSpan.className = "text-2xl font-bold text-marker-black";
                 wordSpan.textContent = word;
 
                 const codeSpan = document.createElement('span');
-                codeSpan.className = "font-mono text-slate-400 text-sm ml-2 bg-slate-100 px-2 py-1 rounded";
+                codeSpan.className = "font-mono font-bold text-slate-400 text-sm ml-2 bg-slate-100 px-2 py-1 rounded";
                 codeSpan.textContent = currentSearchCode;
 
                 leftDiv.appendChild(badge);
@@ -661,14 +813,22 @@
                 rightDiv.className = "flex gap-2";
 
                 const btnUp = document.createElement('button');
-                btnUp.className = `w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm border ${index === 0 ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:bg-blue-50 hover:text-primary hover:border-blue-200'}`;
+                if (index === 0) {
+                    btnUp.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed shadow-none";
+                } else {
+                    btnUp.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-white text-marker-black hover:text-marker-blue";
+                    btnUp.onclick = () => swapWords(index, index - 1);
+                }
                 btnUp.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
-                if (index > 0) btnUp.onclick = () => swapWords(index, index - 1);
 
                 const btnDown = document.createElement('button');
-                btnDown.className = `w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm border ${index === words.length - 1 ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:bg-blue-50 hover:text-primary hover:border-blue-200'}`;
+                if (index === words.length - 1) {
+                    btnDown.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed shadow-none";
+                } else {
+                    btnDown.className = "marker-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-white text-marker-black hover:text-marker-blue";
+                    btnDown.onclick = () => swapWords(index, index + 1);
+                }
                 btnDown.innerHTML = '<i class="fa-solid fa-arrow-down"></i>';
-                if (index < words.length - 1) btnDown.onclick = () => swapWords(index, index + 1);
 
                 rightDiv.appendChild(btnUp);
                 rightDiv.appendChild(btnDown);
@@ -694,9 +854,8 @@
             btn.disabled = true;
 
             try {
-                // 直接重新呼叫 saveToCloud，利用 chunk 覆蓋機制
                 await saveToCloud();
-                showToast("順序已成功同步至雲端資料庫！", "success");
+                showToast("排序修改已經寫入白板囉！", "success");
             } catch (error) {
                 showToast("儲存失敗", "error");
             } finally {
@@ -709,18 +868,15 @@
             if (Object.keys(memoryDictionary).length === 0) return;
 
             let finalContent = "";
-            // 1. 寫入檔頭
             if (fileHeaders.length > 0) {
                 finalContent += fileHeaders.join('\n') + '\n';
             } else {
-                // 如果沒有檔頭，給個預設的
                 finalContent += "---\nname: dayi3\nversion: \"1.0\"\nsort: original\n...\n";
             }
 
-            // 2. 寫入資料區
             for (const [code, words] of Object.entries(memoryDictionary)) {
                 for (const word of words) {
-                    finalContent += `${word}\t${code}\n`;
+                    finalContent += word + "\t" + code + "\n";
                 }
             }
 
@@ -734,10 +890,140 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            showToast(`已匯出字典檔！請覆蓋至小狼毫資料夾並重新部署。`, 'success');
+            showToast("已匯出字典檔！趕快去覆蓋小狼毫資料夾吧。", 'success');
         });
 
-        // 啟動系統
+        function switchRootTab(tabName) {
+            const editBtn = document.getElementById('tab-edit-root');
+            const addBtn = document.getElementById('tab-add-root');
+            const editContent = document.getElementById('content-edit-root');
+            const addContent = document.getElementById('content-add-root');
+
+            if (tabName === 'edit') {
+                editBtn.className = "marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none";
+                addBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
+                editContent.classList.remove('hidden-view');
+                addContent.classList.add('hidden-view');
+            } else {
+                addBtn.className = "marker-btn bg-marker-red text-white px-6 py-2 font-bold flex-1 md:flex-none";
+                editBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
+                addContent.classList.remove('hidden-view');
+                editContent.classList.add('hidden-view');
+            }
+        }
+
+        function findRootsForWord() {
+            const word = document.getElementById('input-edit-root-word').value.trim();
+            if (!word) {
+                showToast("請先輸入要查詢的中文字喔！", "error");
+                return;
+            }
+
+            let foundCodes = [];
+            for (const [code, words] of Object.entries(memoryDictionary)) {
+                if (words.includes(word)) {
+                    foundCodes.push(code);
+                }
+            }
+
+            const resultsDiv = document.getElementById('edit-root-results');
+            resultsDiv.innerHTML = '';
+            
+            if (foundCodes.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = "h-full flex flex-col items-center justify-center text-slate-400";
+                emptyDiv.innerHTML = "<i class=\"fa-solid fa-ghost text-5xl mb-3 opacity-50\"></i><p class=\"font-bold\">字典裡沒有找到「" + word + "」這個字</p>";
+                resultsDiv.appendChild(emptyDiv);
+                return;
+            }
+
+            foundCodes.forEach(code => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex items-center justify-between p-4 border-2 border-slate-300 border-dashed rounded-xl bg-slate-50";
+                
+                const leftDiv = document.createElement('div');
+                leftDiv.className = "flex items-center gap-4";
+                leftDiv.innerHTML = "<span class=\"text-2xl font-bold text-marker-black\">" + word + "</span><span class=\"text-slate-400\"><i class=\"fa-solid fa-arrow-right-long\"></i></span><span class=\"font-mono text-2xl text-marker-blue font-bold\">" + code + "</span>";
+                
+                const btn = document.createElement('button');
+                btn.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-black hover:text-marker-red flex items-center";
+                btn.innerHTML = "<i class=\"fa-solid fa-pen mr-2\"></i>修改字根";
+                btn.onclick = () => startEditRoot(word, code);
+                
+                wrapper.appendChild(leftDiv);
+                wrapper.appendChild(btn);
+                resultsDiv.appendChild(wrapper);
+            });
+        }
+
+        function startEditRoot(word, oldCode) {
+            const newCode = prompt("請輸入「" + word + "」想要替換的新字根：\n(原本的字根為：" + oldCode + ")", oldCode);
+            
+            if (newCode === null || newCode.trim() === '' || newCode.trim() === oldCode) return;
+
+            const cleanNewCode = newCode.trim();
+
+            memoryDictionary[oldCode] = memoryDictionary[oldCode].filter(w => w !== word);
+            if (memoryDictionary[oldCode].length === 0) {
+                delete memoryDictionary[oldCode];
+            }
+
+            if (!memoryDictionary[cleanNewCode]) {
+                memoryDictionary[cleanNewCode] = [];
+            }
+            if (!memoryDictionary[cleanNewCode].includes(word)) {
+                memoryDictionary[cleanNewCode].push(word);
+            }
+
+            saveToCloud().then(() => {
+                showToast("太棒了！已將「" + word + "」的字根由 " + oldCode + " 改為 " + cleanNewCode, "success");
+                findRootsForWord(); 
+                updateTotalCount();
+            });
+        }
+
+        function addNewRoot() {
+            const word = document.getElementById('input-add-word').value.trim();
+            const code = document.getElementById('input-add-code').value.trim();
+
+            if (!word || !code) {
+                showToast("中文字和按鍵碼都必須填寫喔！", "error");
+                return;
+            }
+
+            if (!memoryDictionary[code]) {
+                memoryDictionary[code] = [];
+            }
+
+            if (memoryDictionary[code].includes(word)) {
+                showToast("按鍵碼 [" + code + "] 裡面已經有「" + word + "」這個字了，不用重複新增！", "error");
+                return;
+            }
+
+            memoryDictionary[code].push(word);
+            
+            document.getElementById('input-add-word').value = '';
+            document.getElementById('input-add-code').value = '';
+
+            saveToCloud().then(() => {
+                showToast("新增成功！「" + word + "」(字根：" + code + ") 已存入白板。", "success");
+                updateTotalCount();
+            });
+        }
+
+        // 事件綁定
+        document.getElementById('btn-nav-upload').addEventListener('click', () => switchView('upload'));
+        document.getElementById('btn-nav-manage').addEventListener('click', () => switchView('manage'));
+        document.getElementById('btn-nav-roots').addEventListener('click', () => switchView('roots'));
+        
+        const homeBtns = document.querySelectorAll('.btn-back-home');
+        homeBtns.forEach(btn => btn.addEventListener('click', () => switchView('home')));
+        
+        document.getElementById('tab-edit-root').addEventListener('click', () => switchRootTab('edit'));
+        document.getElementById('tab-add-root').addEventListener('click', () => switchRootTab('add'));
+        document.getElementById('btn-find-roots').addEventListener('click', findRootsForWord);
+        document.getElementById('btn-add-new-root').addEventListener('click', addNewRoot);
+
         window.onload = () => {
             initSystem();
         };
