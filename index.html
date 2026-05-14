@@ -246,7 +246,7 @@
                         <p class="text-marker-green font-bold text-xl mb-1">完成所有修改了嗎？</p>
                         <p class="text-slate-600 font-bold">把白板上的內容匯出，放回小狼毫資料夾。</p>
                     </div>
-                    <button id="btn-export" class="marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
+                    <button class="btn-export-dict marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
                         <i class="fa-solid fa-file-export mr-2"></i>匯出字典檔
                     </button>
                 </div>
@@ -267,14 +267,18 @@
 
                 <div id="content-edit-root" class="flex flex-col flex-1">
                     <div class="flex gap-3 mb-4">
-                        <input type="text" id="input-edit-root-word" placeholder="輸入要修改的中文字..." class="whiteboard-input flex-1 text-xl font-bold">
-                        <button id="btn-find-roots" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找字根</button>
+                        <select id="select-search-type" class="whiteboard-input bg-white font-bold text-slate-700 cursor-pointer text-lg">
+                            <option value="word">找中文字</option>
+                            <option value="code">找按鍵碼</option>
+                        </select>
+                        <input type="text" id="input-edit-root" placeholder="請輸入查詢內容..." class="whiteboard-input flex-1 text-xl font-bold">
+                        <button id="btn-find-roots" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找找看</button>
                     </div>
                     
                     <div id="edit-root-results" class="flex-1 bg-white border-2 border-slate-300 rounded-xl p-4 overflow-y-auto flex flex-col gap-3">
                         <div class="h-full flex flex-col items-center justify-center text-slate-400">
                             <i class="fa-solid fa-puzzle-piece text-5xl mb-3 opacity-50"></i>
-                            <p class="font-bold">請輸入文字以查詢其對應的按鍵碼</p>
+                            <p class="font-bold">請輸入文字或按鍵碼進行查詢</p>
                         </div>
                     </div>
                 </div>
@@ -296,8 +300,36 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="mt-6 pt-6 border-t-4 border-slate-200 border-dashed flex justify-between items-center bg-green-50 p-5 rounded-xl border border-green-200 relative overflow-hidden">
+                    <i class="fa-solid fa-download absolute -right-5 -bottom-5 text-8xl text-green-200/50 transform -rotate-12"></i>
+                    <div class="relative z-10">
+                        <p class="text-marker-green font-bold text-xl mb-1">完成字根管理了嗎？</p>
+                        <p class="text-slate-600 font-bold">記得將白板上的內容匯出並更新喔！</p>
+                    </div>
+                    <button class="btn-export-dict marker-btn bg-marker-green text-white px-6 py-3 font-bold text-lg flex items-center relative z-10">
+                        <i class="fa-solid fa-file-export mr-2"></i>匯出字典檔
+                    </button>
+                </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- 模態框 (自訂修改確認視窗) -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200 opacity-0">
+        <div class="whiteboard-panel w-full max-w-sm p-8 transform transition-transform duration-200 scale-95" id="modal-content">
+            <h3 class="text-2xl font-bold text-marker-black mb-4 border-b-2 border-dashed pb-2 inline-block"><i class="fa-solid fa-pen text-marker-red mr-2"></i>修改字根</h3>
+            <p class="text-slate-600 mb-4 font-bold text-lg" id="modal-edit-desc">
+                字元「<span id="modal-word" class="text-marker-blue text-2xl"></span>」目前的字根：<br>
+                <span id="modal-old-code" class="text-marker-red font-mono bg-red-50 px-2 py-1 rounded inline-block mt-1"></span>
+            </p>
+            <label class="block text-slate-500 font-bold mb-2">請輸入新字根：</label>
+            <input type="text" id="modal-input-code" class="whiteboard-input w-full font-mono text-2xl text-marker-green font-bold mb-6" placeholder="新字根...">
+            <div class="flex gap-3 justify-end">
+                <button onclick="closeModal()" class="marker-btn px-6 py-2 bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">取消</button>
+                <button onclick="confirmEditRoot()" class="marker-btn px-6 py-2 bg-marker-green text-white font-bold">確認修改</button>
+            </div>
         </div>
     </div>
 
@@ -331,6 +363,9 @@
         
         let currentSearchCode = "";
         let originalFileName = "dayi3.dict.yaml";
+        
+        let tempEditWord = "";
+        let tempEditOldCode = "";
 
         const views = {
             init: document.getElementById('view-init'),
@@ -864,8 +899,11 @@
             }
         });
 
-        document.getElementById('btn-export').addEventListener('click', () => {
-            if (Object.keys(memoryDictionary).length === 0) return;
+        window.exportDictionary = function() {
+            if (Object.keys(memoryDictionary).length === 0) {
+                showToast("目前白板是空的，沒有資料可以匯出喔！", "error");
+                return;
+            }
 
             let finalContent = "";
             if (fileHeaders.length > 0) {
@@ -891,7 +929,7 @@
             URL.revokeObjectURL(url);
 
             showToast("已匯出字典檔！趕快去覆蓋小狼毫資料夾吧。", 'success');
-        });
+        };
 
         function switchRootTab(tabName) {
             const editBtn = document.getElementById('tab-edit-root');
@@ -913,42 +951,52 @@
         }
 
         function findRootsForWord() {
-            const word = document.getElementById('input-edit-root-word').value.trim();
-            if (!word) {
-                showToast("請先輸入要查詢的中文字喔！", "error");
+            const searchType = document.getElementById('select-search-type').value;
+            const inputVal = document.getElementById('input-edit-root').value.trim();
+            if (!inputVal) {
+                showToast("請先輸入要查詢的內容喔！", "error");
                 return;
             }
 
-            let foundCodes = [];
-            for (const [code, words] of Object.entries(memoryDictionary)) {
-                if (words.includes(word)) {
-                    foundCodes.push(code);
+            let results = [];
+            
+            if (searchType === 'word') {
+                for (const [code, words] of Object.entries(memoryDictionary)) {
+                    if (words.includes(inputVal)) {
+                        results.push({ word: inputVal, code: code });
+                    }
+                }
+            } else {
+                if (memoryDictionary[inputVal]) {
+                    memoryDictionary[inputVal].forEach(w => {
+                        results.push({ word: w, code: inputVal });
+                    });
                 }
             }
 
             const resultsDiv = document.getElementById('edit-root-results');
             resultsDiv.innerHTML = '';
             
-            if (foundCodes.length === 0) {
+            if (results.length === 0) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = "h-full flex flex-col items-center justify-center text-slate-400";
-                emptyDiv.innerHTML = "<i class=\"fa-solid fa-ghost text-5xl mb-3 opacity-50\"></i><p class=\"font-bold\">字典裡沒有找到「" + word + "」這個字</p>";
+                emptyDiv.innerHTML = "<i class=\"fa-solid fa-ghost text-5xl mb-3 opacity-50\"></i><p class=\"font-bold\">字典裡沒有找到符合的紀錄</p>";
                 resultsDiv.appendChild(emptyDiv);
                 return;
             }
 
-            foundCodes.forEach(code => {
+            results.forEach(item => {
                 const wrapper = document.createElement('div');
                 wrapper.className = "flex items-center justify-between p-4 border-2 border-slate-300 border-dashed rounded-xl bg-slate-50";
                 
                 const leftDiv = document.createElement('div');
                 leftDiv.className = "flex items-center gap-4";
-                leftDiv.innerHTML = "<span class=\"text-2xl font-bold text-marker-black\">" + word + "</span><span class=\"text-slate-400\"><i class=\"fa-solid fa-arrow-right-long\"></i></span><span class=\"font-mono text-2xl text-marker-blue font-bold\">" + code + "</span>";
+                leftDiv.innerHTML = "<span class=\"text-2xl font-bold text-marker-black\">" + item.word + "</span><span class=\"text-slate-400\"><i class=\"fa-solid fa-arrow-right-long\"></i></span><span class=\"font-mono text-2xl text-marker-blue font-bold\">" + item.code + "</span>";
                 
                 const btn = document.createElement('button');
                 btn.className = "marker-btn px-4 py-2 bg-white font-bold text-marker-black hover:text-marker-red flex items-center";
                 btn.innerHTML = "<i class=\"fa-solid fa-pen mr-2\"></i>修改字根";
-                btn.onclick = () => startEditRoot(word, code);
+                btn.onclick = () => startEditRoot(item.word, item.code);
                 
                 wrapper.appendChild(leftDiv);
                 wrapper.appendChild(btn);
@@ -956,12 +1004,51 @@
             });
         }
 
-        function startEditRoot(word, oldCode) {
-            const newCode = prompt("請輸入「" + word + "」想要替換的新字根：\n(原本的字根為：" + oldCode + ")", oldCode);
+        window.startEditRoot = function(word, oldCode) {
+            tempEditWord = word;
+            tempEditOldCode = oldCode;
             
-            if (newCode === null || newCode.trim() === '' || newCode.trim() === oldCode) return;
+            document.getElementById('modal-word').textContent = word;
+            document.getElementById('modal-old-code').textContent = oldCode;
+            document.getElementById('modal-input-code').value = oldCode;
+            
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            overlay.classList.remove('hidden');
+            // 強制瀏覽器重新渲染以套用動畫
+            void overlay.offsetWidth;
+            overlay.classList.replace('opacity-0', 'opacity-100');
+            content.classList.replace('scale-95', 'scale-100');
+            
+            const inputField = document.getElementById('modal-input-code');
+            inputField.focus();
+            inputField.select();
+        };
 
-            const cleanNewCode = newCode.trim();
+        window.closeModal = function() {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            overlay.classList.replace('opacity-100', 'opacity-0');
+            content.classList.replace('scale-100', 'scale-95');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 200); // 等待動畫完成
+        };
+
+        window.confirmEditRoot = function() {
+            const newCode = document.getElementById('modal-input-code').value.trim();
+            const word = tempEditWord;
+            const oldCode = tempEditOldCode;
+
+            if (!newCode || newCode === oldCode) {
+                closeModal();
+                return;
+            }
+
+            const cleanNewCode = newCode;
 
             memoryDictionary[oldCode] = memoryDictionary[oldCode].filter(w => w !== word);
             if (memoryDictionary[oldCode].length === 0) {
@@ -979,8 +1066,9 @@
                 showToast("太棒了！已將「" + word + "」的字根由 " + oldCode + " 改為 " + cleanNewCode, "success");
                 findRootsForWord(); 
                 updateTotalCount();
+                closeModal();
             });
-        }
+        };
 
         function addNewRoot() {
             const word = document.getElementById('input-add-word').value.trim();
@@ -1023,6 +1111,20 @@
         document.getElementById('tab-add-root').addEventListener('click', () => switchRootTab('add'));
         document.getElementById('btn-find-roots').addEventListener('click', findRootsForWord);
         document.getElementById('btn-add-new-root').addEventListener('click', addNewRoot);
+        
+        // 綁定所有匯出按鈕
+        document.querySelectorAll('.btn-export-dict').forEach(btn => {
+            btn.addEventListener('click', exportDictionary);
+        });
+        
+        // 支援 Enter 鍵快捷查詢與確認
+        document.getElementById('input-edit-root').addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') findRootsForWord(); 
+        });
+        
+        document.getElementById('modal-input-code').addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') confirmEditRoot(); 
+        });
 
         window.onload = () => {
             initSystem();
