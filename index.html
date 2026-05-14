@@ -351,26 +351,44 @@
                 <!-- 辭庫內容1: 查詢與修改 -->
                 <div id="content-edit-phrase" class="flex flex-col flex-1">
                     <div class="flex gap-3 mb-4">
+                        <select id="select-phrase-search-type" class="whiteboard-input bg-white font-bold text-slate-700 cursor-pointer text-lg">
+                            <option value="word">找辭庫文字</option>
+                            <option value="code">找按鍵碼</option>
+                        </select>
                         <div class="relative flex-1">
-                            <input type="text" id="input-edit-phrase" placeholder="過濾辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
+                            <input type="text" id="input-edit-phrase" placeholder="請輸入辭庫內容或按鍵碼..." class="whiteboard-input w-full text-xl font-bold pr-10">
                             <button id="btn-clear-phrase-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-marker-red hidden transition-colors" title="清除內容">
                                 <i class="fa-solid fa-eraser text-2xl"></i>
                             </button>
                         </div>
+                        <button id="btn-find-phrases" class="marker-btn bg-marker-black text-white px-6 py-2 font-bold text-lg"><i class="fa-solid fa-magnifying-glass mr-2"></i>找找看</button>
                     </div>
                     
                     <div id="phrase-list-container" class="flex-1 bg-white border-2 border-slate-300 rounded-xl overflow-hidden flex flex-col">
+                        <div class="bg-slate-50 border-b-2 border-slate-300 p-3 flex justify-between items-center px-4 md:px-6">
+                            <span class="text-sm font-bold text-slate-500 phrase-page-info">第 1 頁 / 共 1 頁</span>
+                            <div class="flex gap-2">
+                                <button class="btn-phrase-first marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="第一頁"><i class="fa-solid fa-angles-left"></i></button>
+                                <button class="btn-phrase-prev marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="上一頁"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button class="btn-phrase-next marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="下一頁"><i class="fa-solid fa-chevron-right"></i></button>
+                                <button class="btn-phrase-last marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="最後一頁"><i class="fa-solid fa-angles-right"></i></button>
+                            </div>
+                        </div>
+
                         <div id="edit-phrase-results" class="flex-1 p-2 overflow-y-auto flex flex-col">
                             <div class="h-full flex flex-col items-center justify-center text-slate-400">
                                 <i class="fa-solid fa-book-open text-5xl mb-3 opacity-50"></i>
-                                <p class="font-bold">載入中...</p>
+                                <p class="font-bold">請輸入辭庫文字或按鍵碼進行查詢</p>
                             </div>
                         </div>
+
                         <div class="bg-slate-50 border-t-2 border-slate-300 p-3 flex justify-between items-center px-4 md:px-6">
-                            <span class="text-sm font-bold text-slate-500" id="phrase-page-info">第 1 頁 / 共 1 頁</span>
+                            <span class="text-sm font-bold text-slate-500 phrase-page-info">第 1 頁 / 共 1 頁</span>
                             <div class="flex gap-2">
-                                <button id="btn-phrase-prev" class="marker-btn bg-white text-marker-black px-3 md:px-4 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
-                                <button id="btn-phrase-next" class="marker-btn bg-white text-marker-black px-3 md:px-4 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed">下一頁 <i class="fa-solid fa-chevron-right"></i></button>
+                                <button class="btn-phrase-first marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="第一頁"><i class="fa-solid fa-angles-left"></i></button>
+                                <button class="btn-phrase-prev marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="上一頁"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button class="btn-phrase-next marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="下一頁"><i class="fa-solid fa-chevron-right"></i></button>
+                                <button class="btn-phrase-last marker-btn bg-white text-marker-black px-2 md:px-3 py-1 font-bold disabled:opacity-50 disabled:cursor-not-allowed" title="最後一頁"><i class="fa-solid fa-angles-right"></i></button>
                             </div>
                         </div>
                     </div>
@@ -1309,7 +1327,7 @@
                 editBtn.classList.replace('bg-white', 'bg-marker-purple');
                 editBtn.classList.replace('text-marker-black', 'text-white');
                 editContent.classList.remove('hidden-view');
-                renderPhraseList(); // 切換時自動載入分頁列表
+                renderPhraseList();
             } else if (tabName === 'add') {
                 addBtn.classList.replace('bg-white', 'bg-marker-purple');
                 addBtn.classList.replace('text-marker-black', 'text-white');
@@ -1337,12 +1355,21 @@
             renderPhraseList();
         });
 
+        let currentPhraseTotalPages = 1;
+
         function getFlatPhrases(filterText = '') {
+            const searchType = document.getElementById('select-phrase-search-type').value;
             let list = [];
             for (const [code, words] of Object.entries(phraseDictionary)) {
                 for (const word of words) {
-                    if (!filterText || word.includes(filterText) || code.includes(filterText)) {
+                    if (!filterText) {
                         list.push({ word, code });
+                    } else {
+                        if (searchType === 'word' && word.includes(filterText)) {
+                            list.push({ word, code });
+                        } else if (searchType === 'code' && code.includes(filterText)) {
+                            list.push({ word, code });
+                        }
                     }
                 }
             }
@@ -1352,9 +1379,9 @@
         function renderPhraseList() {
             const filterText = inputEditPhrase.value.trim();
             const flatList = getFlatPhrases(filterText);
-            const totalPages = Math.max(1, Math.ceil(flatList.length / PHRASES_PER_PAGE));
+            currentPhraseTotalPages = Math.max(1, Math.ceil(flatList.length / PHRASES_PER_PAGE));
             
-            if (currentPhrasePage > totalPages) currentPhrasePage = totalPages;
+            if (currentPhrasePage > currentPhraseTotalPages) currentPhrasePage = currentPhraseTotalPages;
             if (currentPhrasePage < 1) currentPhrasePage = 1;
 
             const startIndex = (currentPhrasePage - 1) * PHRASES_PER_PAGE;
@@ -1365,28 +1392,38 @@
             resultsDiv.innerHTML = '';
             
             if (flatList.length === 0) {
-                resultsDiv.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-slate-400"><i class="fa-solid fa-ghost text-5xl mb-3 opacity-50"></i><p class="font-bold">沒有找到符合的辭庫紀錄</p></div>';
+                resultsDiv.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-ghost text-5xl mb-3 opacity-50"></i>
+                        <p class="font-bold">沒有找到符合的辭庫紀錄</p>
+                    </div>
+                `;
             } else {
                 pageItems.forEach((item, idx) => {
                     const globalIndex = startIndex + idx + 1;
                     const wrapper = document.createElement('div');
-                    wrapper.className = "flex flex-col md:flex-row items-center justify-between p-3 border-b border-dashed border-slate-200 hover:bg-purple-50/50 gap-4";
+                    wrapper.className = "flex flex-col md:flex-row items-center justify-between p-3 border-b border-dashed border-slate-200 hover:bg-purple-50 gap-4";
                     
                     const leftDiv = document.createElement('div');
                     leftDiv.className = "flex items-center gap-3 w-full md:w-auto overflow-hidden";
-                    leftDiv.innerHTML = '<span class="text-slate-400 font-mono text-sm w-8 text-right">' + globalIndex + '.</span><span class="text-xl font-bold text-marker-black truncate" title="' + item.word + '">' + item.word + '</span><span class="text-slate-300"><i class="fa-solid fa-arrow-right"></i></span><span class="font-mono text-lg text-marker-purple font-bold">' + item.code + '</span>';
+                    leftDiv.innerHTML = `
+                        <span class="text-slate-400 font-mono text-sm w-8 text-right">${globalIndex}.</span>
+                        <span class="text-xl font-bold text-marker-black truncate" title="${item.word}">${item.word}</span>
+                        <span class="text-slate-300"><i class="fa-solid fa-arrow-right"></i></span>
+                        <span class="font-mono text-lg text-marker-purple font-bold">${item.code}</span>
+                    `;
                     
                     const rightDiv = document.createElement('div');
                     rightDiv.className = "flex gap-2 w-full md:w-auto justify-end";
                     
                     const btnEdit = document.createElement('button');
                     btnEdit.className = "px-3 py-1 bg-white border-2 border-slate-300 rounded text-marker-black hover:border-marker-blue hover:text-marker-blue font-bold text-sm transition-colors";
-                    btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> 修改';
+                    btnEdit.innerHTML = `<i class="fa-solid fa-pen"></i> 修改`;
                     btnEdit.addEventListener('click', () => startEditPhrase(item.word, item.code));
                     
                     const btnDelete = document.createElement('button');
                     btnDelete.className = "px-3 py-1 bg-white border-2 border-slate-300 rounded text-marker-black hover:border-marker-red hover:text-marker-red font-bold text-sm transition-colors";
-                    btnDelete.innerHTML = '<i class="fa-solid fa-trash-can"></i> 刪除';
+                    btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> 刪除`;
                     btnDelete.addEventListener('click', () => deletePhrase(item.word, item.code));
                     
                     rightDiv.appendChild(btnEdit);
@@ -1398,22 +1435,20 @@
                 });
             }
 
-            document.getElementById('phrase-page-info').textContent = '第 ' + currentPhrasePage + ' 頁 / 共 ' + totalPages + ' 頁 (共 ' + flatList.length + ' 筆)';
-            document.getElementById('btn-phrase-prev').disabled = currentPhrasePage === 1;
-            document.getElementById('btn-phrase-next').disabled = currentPhrasePage === totalPages;
+            document.querySelectorAll('.phrase-page-info').forEach(el => {
+                el.textContent = `第 ${currentPhrasePage} 頁 / 共 ${currentPhraseTotalPages} 頁 (共 ${flatList.length} 筆)`;
+            });
+
+            document.querySelectorAll('.btn-phrase-first').forEach(btn => btn.disabled = currentPhrasePage === 1);
+            document.querySelectorAll('.btn-phrase-prev').forEach(btn => btn.disabled = currentPhrasePage === 1);
+            document.querySelectorAll('.btn-phrase-next').forEach(btn => btn.disabled = currentPhrasePage === currentPhraseTotalPages);
+            document.querySelectorAll('.btn-phrase-last').forEach(btn => btn.disabled = currentPhrasePage === currentPhraseTotalPages);
         }
 
-        document.getElementById('btn-phrase-prev')?.addEventListener('click', () => {
-            if (currentPhrasePage > 1) {
-                currentPhrasePage--;
-                renderPhraseList();
-            }
-        });
-
-        document.getElementById('btn-phrase-next')?.addEventListener('click', () => {
-            currentPhrasePage++;
+        function findPhrases() {
+            currentPhrasePage = 1;
             renderPhraseList();
-        });
+        }
 
         function startEditPhrase(word, oldCode) {
             tempEditWord = word;
@@ -1496,21 +1531,20 @@
                 return;
             }
             let finalContent = "";
-            if (phraseHeaders.length > 0) {
-                finalContent += phraseHeaders.join('\n') + '\n';
-            } else {
-                finalContent += `---\nname: custom_phrase\nversion: "1.0"\nsort: by_weight\n...\n\n`;
-            }
             for (const [code, words] of Object.entries(phraseDictionary)) {
                 for (const word of words) {
                     finalContent += `${word}\t${code}\n`;
                 }
             }
-            const blob = new Blob([finalContent], { type: 'text/yaml;charset=utf-8' });
+            const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = originalPhraseFileName;
+            
+            let exportName = originalPhraseFileName || "custom_phrase";
+            exportName = exportName.replace(/\.(yaml|txt|dict|userdb\.txt)$/i, '');
+            a.download = `${exportName}.userdb.txt`;
+            
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1540,6 +1574,21 @@
         
         document.querySelectorAll('.btn-export-main-dict').forEach(btn => btn.addEventListener('click', exportDictionary));
         document.querySelectorAll('.btn-export-phrase-dict').forEach(btn => btn.addEventListener('click', exportPhraseDictionary));
+
+        document.querySelectorAll('.btn-phrase-first').forEach(btn => btn.addEventListener('click', () => {
+            currentPhrasePage = 1;
+            renderPhraseList();
+        }));
+        document.querySelectorAll('.btn-phrase-prev').forEach(btn => btn.addEventListener('click', () => {
+            if (currentPhrasePage > 1) { currentPhrasePage--; renderPhraseList(); }
+        }));
+        document.querySelectorAll('.btn-phrase-next').forEach(btn => btn.addEventListener('click', () => {
+            if (currentPhrasePage < currentPhraseTotalPages) { currentPhrasePage++; renderPhraseList(); }
+        }));
+        document.querySelectorAll('.btn-phrase-last').forEach(btn => btn.addEventListener('click', () => {
+            currentPhrasePage = currentPhraseTotalPages;
+            renderPhraseList();
+        }));
 
         document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
         document.getElementById('btn-modal-confirm').addEventListener('click', confirmEditRoot);
