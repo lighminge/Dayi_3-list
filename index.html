@@ -1809,6 +1809,11 @@
         document.getElementById('input-add-phrase-word')?.addEventListener('input', checkDuplicatePhrase);
         document.getElementById('input-add-word')?.addEventListener('input', checkDuplicateRoot);
 
+        // 新增：候選字管理的 Enter 鍵快捷查詢
+        document.getElementById('search-input')?.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') executeSearch(); 
+        });
+        
         document.getElementById('input-edit-root')?.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') findRootsForWord(); 
         });
