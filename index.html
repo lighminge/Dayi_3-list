@@ -1740,7 +1740,8 @@
             
             phraseList.forEach(item => {
                 const extra = item.extra || 'c=1 d=1 t=1';
-                finalContent += `${item.code}\t${item.word}\t${extra}\n`;
+                // 修正格式：按鍵碼 + 空白 + TAB + 文字 + TAB + 記憶屬性
+                finalContent += `${item.code} \t${item.word}\t${extra}\n`;
             });
             
             const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
