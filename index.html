@@ -332,7 +332,7 @@
                 </div>
             </div>
 
-            <!-- 視圖: 使用者辭庫 (雙軌新架構) -->
+            <!-- 視圖: 使用者辭庫 (支援 userdb 嚴格順序架構) -->
             <div id="view-phrases" class="hidden-view flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-6 border-b-2 border-slate-200 border-dashed pb-4">
                     <h2 class="text-2xl font-bold"><span class="text-marker-purple mr-2">4.</span>使用者辭庫管理</h2>
@@ -426,9 +426,9 @@
                     <div id="phrase-file-ready-info" class="hidden-view bg-purple-50 border-2 border-marker-purple rounded-xl p-6 mt-4 text-center">
                         <i class="fa-solid fa-check-double text-5xl text-marker-purple mb-3"></i>
                         <p class="text-xl font-bold text-marker-black mb-1" id="phrase-file-ready-name">filename.userdb.txt</p>
-                        <p class="text-slate-600 font-bold mb-4">辭庫檔解析完成！準備好同步至雲端</p>
+                        <p class="text-slate-600 font-bold mb-4">辭庫檔解析完成！準備好完全覆蓋雲端紀錄</p>
                         <button id="btn-start-phrase-sync" class="marker-btn bg-marker-purple text-white px-8 py-3 font-bold text-lg inline-flex items-center">
-                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始合併與同步辭庫
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>開始覆蓋與同步辭庫
                         </button>
                     </div>
                 </div>
@@ -487,7 +487,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'github-dayi3-list';
         
@@ -505,6 +505,7 @@
 
         let app, auth, db, userId;
         
+        // 主字典狀態
         let fileHeaders = [];
         let fileDictionary = {}; 
         let cloudDictionary = {}; 
@@ -512,11 +513,10 @@
         let originalFileName = "dayi3.dict.yaml";
         let currentSearchCode = "";
         
+        // 辭庫狀態 (全面升級為陣列架構以支援嚴格排序)
         let phraseHeaders = [];
-        let filePhraseDictionary = {};
-        let filePhraseExtraInfo = {}; 
-        let phraseDictionary = {};
-        let phraseExtraInfo = {}; 
+        let filePhraseList = []; 
+        let phraseList = []; 
         let originalPhraseFileName = "dayi3.userdb.txt";
         
         let currentPhrasePage = 1;
@@ -580,10 +580,10 @@
                 if (!currentUser) {
                     try {
                         if (initialToken) {
-                            document.getElementById('init-status').textContent = "使用自訂憑證登入中...";
+                            if(document.getElementById('init-status')) document.getElementById('init-status').textContent = "使用自訂憑證登入中...";
                             await signInWithCustomToken(auth, initialToken);
                         } else {
-                            document.getElementById('init-status').textContent = "建立白板連線中...";
+                            if(document.getElementById('init-status')) document.getElementById('init-status').textContent = "建立白板連線中...";
                             await signInAnonymously(auth);
                         }
                         currentUser = auth.currentUser;
@@ -602,13 +602,10 @@
                     memoryDictionary = {
                         "a": ["對", "我"], "aa": ["白", "我"], "b": ["的", "不"], "bb": ["明", "的"]
                     };
-                    phraseDictionary = {
-                        "zhmg": ["中華民國"], "twn": ["台灣"]
-                    };
-                    phraseExtraInfo = {
-                        "zhmg|||中華民國": "c=1 d=0.1",
-                        "twn|||台灣": "c=2 d=0.5"
-                    };
+                    phraseList = [
+                        { code: "zhmg", word: "中華民國", extra: "c=1 d=0.1" },
+                        { code: "twn", word: "台灣", extra: "c=2 d=0.5" }
+                    ];
                     
                     updateTotalCount();
                     switchView('home');
@@ -628,8 +625,8 @@
                 showToast("初始化發生錯誤，已進入「本機測試模式」。", "info");
                 
                 memoryDictionary = { "a": ["對", "我"] };
-                phraseDictionary = { "twn": ["台灣"] };
-                phraseExtraInfo = { "twn|||台灣": "c=1" };
+                phraseList = [ { code: "twn", word: "台灣", extra: "c=1" } ];
+                
                 updateTotalCount();
                 switchView('home');
             }
@@ -667,6 +664,9 @@
             }
         }
 
+        // =======================
+        // 檔案處理區塊
+        // =======================
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         dropZone?.addEventListener('click', () => fileInput?.click());
@@ -756,8 +756,7 @@
         function parsePhraseDictionary(text, fileName) {
             const lines = text.split(/\r?\n/);
             phraseHeaders = [];
-            filePhraseDictionary = {};
-            filePhraseExtraInfo = {};
+            filePhraseList = []; 
             
             const isUserDb = fileName && fileName.endsWith('.userdb.txt');
             
@@ -785,17 +784,17 @@
                             extra = parts.length > 2 ? parts.slice(2).join('\t') : '';
                         }
                         
-                        if (!filePhraseDictionary[code]) filePhraseDictionary[code] = [];
-                        if (!filePhraseDictionary[code].includes(word)) filePhraseDictionary[code].push(word);
-                        
-                        if (extra) {
-                            filePhraseExtraInfo[`${code}|||${word}`] = extra;
+                        if (!filePhraseList.some(item => item.code === code && item.word === word)) {
+                            filePhraseList.push({ code, word, extra });
                         }
                     }
                 }
             }
         }
 
+        // =======================
+        // 同步處理區塊
+        // =======================
         document.getElementById('btn-start-sync')?.addEventListener('click', async () => {
             switchView('sync');
             try {
@@ -851,33 +850,11 @@
         document.getElementById('btn-start-phrase-sync')?.addEventListener('click', async () => {
             switchView('sync');
             try {
-                if (!isOfflineMode) {
-                    if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在下載雲端辭庫資料...";
-                    if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "20%";
-                    const phraseChunksRef = collection(db, 'artifacts', appId, 'users', userId, 'phrase_chunks');
-                    const phraseChunksSnapshot = await getDocs(phraseChunksRef);
-                    await loadPhraseCloudData(phraseChunksSnapshot);
-                }
-
-                if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在合併辭庫紀錄...";
+                if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在覆蓋並同步辭庫...";
                 if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "50%";
                 
-                for (const [code, words] of Object.entries(filePhraseDictionary)) {
-                    if (!phraseDictionary[code]) {
-                        phraseDictionary[code] = [...words];
-                    } else {
-                        for (const w of words) {
-                            if (!phraseDictionary[code].includes(w)) phraseDictionary[code].push(w);
-                        }
-                    }
-                    
-                    for (const w of words) {
-                        const extraInfo = filePhraseExtraInfo[`${code}|||${w}`];
-                        if (extraInfo) {
-                            phraseExtraInfo[`${code}|||${w}`] = extraInfo;
-                        }
-                    }
-                }
+                // 完全以使用者上傳的檔案為基準，覆蓋記憶體，並保證順序！
+                phraseList = [...filePhraseList];
 
                 if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在上傳辭庫至資料庫...";
                 if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "70%";
@@ -889,7 +866,7 @@
                     switchView('phrases');
                     switchPhraseTab('edit');
                     updateTotalCount();
-                    showToast("辭庫合併同步完成囉！", "success");
+                    showToast("辭庫覆蓋同步完成囉！", "success");
                     
                     phraseDropZone?.classList.remove('hidden-view');
                     document.getElementById('phrase-file-ready-info')?.classList.add('hidden-view');
@@ -919,25 +896,29 @@
         }
 
         async function loadPhraseCloudData(snapshot) {
-            phraseDictionary = {};
-            phraseExtraInfo = {};
+            phraseList = [];
             if (snapshot.empty) return;
+            
+            let allItems = [];
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
-                if (data.entries) {
+                if (data.items) {
+                    allItems = allItems.concat(data.items);
+                } else if (data.entries) {
+                    // 相容舊版本的資料庫結構
                     for (const [code, items] of Object.entries(data.entries)) {
-                        phraseDictionary[code] = [];
                         items.forEach(item => {
                             if (typeof item === 'string') {
-                                phraseDictionary[code].push(item);
+                                allItems.push({ code, word: item, extra: '' });
                             } else if (item && item.w) {
-                                phraseDictionary[code].push(item.w);
-                                if (item.x) phraseExtraInfo[`${code}|||${item.w}`] = item.x;
+                                allItems.push({ code, word: item.w, extra: item.x || '' });
                             }
                         });
                     }
                 }
             });
+            phraseList = allItems;
+            
             try {
                 const metaDoc = await getDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'phrase_info'));
                 if (metaDoc.exists() && metaDoc.data().headers) phraseHeaders = metaDoc.data().headers;
@@ -968,21 +949,25 @@
             if (phraseHeaders.length > 0) {
                 await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'phrase_info'), { headers: phraseHeaders });
             }
-            const allEntries = Object.entries(phraseDictionary);
+            
+            // 清理舊的 Chunk 避免殘留
+            try {
+                const phraseChunksRef = collection(db, 'artifacts', appId, 'users', userId, 'phrase_chunks');
+                const existingChunks = await getDocs(phraseChunksRef);
+                const deletePromises = [];
+                existingChunks.forEach(docSnap => {
+                    deletePromises.push(deleteDoc(docSnap.ref));
+                });
+                await Promise.all(deletePromises);
+            } catch (e) { console.warn("Delete old chunks failed", e); }
+
             const CHUNK_SIZE = 2000; 
             let chunkPromises = [];
-            for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
-                const chunkSlice = allEntries.slice(i, i + CHUNK_SIZE);
-                const chunkObj = {};
-                chunkSlice.forEach(([c, words]) => { 
-                    chunkObj[c] = words.map(w => {
-                        const extra = phraseExtraInfo[`${c}|||${w}`] || '';
-                        return { w: w, x: extra };
-                    }); 
-                });
+            for (let i = 0; i < phraseList.length; i += CHUNK_SIZE) {
+                const chunkSlice = phraseList.slice(i, i + CHUNK_SIZE);
                 const chunkIndex = Math.floor(i / CHUNK_SIZE);
                 const docRef = doc(db, 'artifacts', appId, 'users', userId, 'phrase_chunks', `chunk_${chunkIndex}`);
-                chunkPromises.push(setDoc(docRef, { entries: chunkObj }));
+                chunkPromises.push(setDoc(docRef, { items: chunkSlice }));
             }
             await Promise.all(chunkPromises);
         }
@@ -992,11 +977,12 @@
             for (const words of Object.values(memoryDictionary)) count += words.length;
             if(document.getElementById('total-words-count')) document.getElementById('total-words-count').textContent = count.toLocaleString();
             
-            let phraseCount = 0;
-            for (const words of Object.values(phraseDictionary)) phraseCount += words.length;
-            if(document.getElementById('total-phrases-count')) document.getElementById('total-phrases-count').textContent = phraseCount.toLocaleString();
+            if(document.getElementById('total-phrases-count')) document.getElementById('total-phrases-count').textContent = phraseList.length.toLocaleString();
         }
 
+        // =======================
+        // 主字典：搜尋與管理模組
+        // =======================
         const searchInput = document.getElementById('search-input');
         const btnClearSearch = document.getElementById('btn-clear-search');
         const btnSearch = document.getElementById('btn-search');
@@ -1209,6 +1195,9 @@
             showToast("已匯出主字典檔！", 'success');
         }
 
+        // =======================
+        // 主字典：字根管理模組
+        // =======================
         function switchRootTab(tabName) {
             const editBtn = document.getElementById('tab-edit-root');
             const addBtn = document.getElementById('tab-add-root');
@@ -1367,6 +1356,9 @@
             });
         }
 
+        // =======================
+        // 辭庫：搜尋與管理模組 (陣列排序版)
+        // =======================
         function switchPhraseTab(tabName) {
             const editBtn = document.getElementById('tab-edit-phrase');
             const addBtn = document.getElementById('tab-add-phrase');
@@ -1420,21 +1412,13 @@
         function getFlatPhrases(filterText = '') {
             const selectType = document.getElementById('select-phrase-search-type');
             const searchType = selectType ? selectType.value : 'word';
-            let list = [];
-            for (const [code, words] of Object.entries(phraseDictionary)) {
-                for (const word of words) {
-                    if (!filterText) {
-                        list.push({ word, code });
-                    } else {
-                        if (searchType === 'word' && word.includes(filterText)) {
-                            list.push({ word, code });
-                        } else if (searchType === 'code' && code.includes(filterText)) {
-                            list.push({ word, code });
-                        }
-                    }
-                }
-            }
-            return list;
+            if (!filterText) return phraseList;
+            
+            return phraseList.filter(item => {
+                if (searchType === 'word') return item.word.includes(filterText);
+                if (searchType === 'code') return item.code.includes(filterText);
+                return false;
+            });
         }
 
         function renderPhraseList() {
@@ -1547,16 +1531,9 @@
             const oldCode = tempEditOldCode;
             if (!newCode || newCode === oldCode) { closePhraseModal(); return; }
 
-            const extra = phraseExtraInfo[`${oldCode}|||${word}`];
-
-            phraseDictionary[oldCode] = phraseDictionary[oldCode].filter(w => w !== word);
-            if (phraseDictionary[oldCode].length === 0) delete phraseDictionary[oldCode];
-            if (!phraseDictionary[newCode]) phraseDictionary[newCode] = [];
-            if (!phraseDictionary[newCode].includes(word)) phraseDictionary[newCode].push(word);
-
-            if (extra) {
-                phraseExtraInfo[`${newCode}|||${word}`] = extra;
-                delete phraseExtraInfo[`${oldCode}|||${word}`];
+            const targetIndex = phraseList.findIndex(item => item.code === oldCode && item.word === word);
+            if (targetIndex !== -1) {
+                phraseList[targetIndex].code = newCode;
             }
 
             savePhraseToCloud().then(() => {
@@ -1569,10 +1546,7 @@
 
         function deletePhrase(word, code) {
             if(confirm(`確定要刪除辭庫「${word}」(按鍵碼：${code}) 嗎？\n刪除後將無法復原。`)) {
-                phraseDictionary[code] = phraseDictionary[code].filter(w => w !== word);
-                if (phraseDictionary[code].length === 0) delete phraseDictionary[code];
-                
-                delete phraseExtraInfo[`${code}|||${word}`];
+                phraseList = phraseList.filter(item => !(item.code === code && item.word === word));
                 
                 savePhraseToCloud().then(() => {
                     showToast("已成功刪除該筆辭庫資料！", "success");
@@ -1589,11 +1563,12 @@
             const code = inputCode ? inputCode.value.trim() : '';
             
             if (!word || !code) { showToast("辭庫文字和按鍵碼都必須填寫喔！", "error"); return; }
-            if (!phraseDictionary[code]) phraseDictionary[code] = [];
-            if (phraseDictionary[code].includes(word)) { showToast("這個辭庫紀錄已經存在囉！", "error"); return; }
+            if (phraseList.some(item => item.code === code && item.word === word)) { 
+                showToast("這個辭庫紀錄已經存在囉！", "error"); 
+                return; 
+            }
 
-            phraseDictionary[code].push(word);
-            phraseExtraInfo[`${code}|||${word}`] = 'c=1 d=1 t=1';
+            phraseList.push({ code, word, extra: 'c=1 d=1 t=1' });
 
             if(inputWord) inputWord.value = '';
             if(inputCode) inputCode.value = '';
@@ -1605,7 +1580,7 @@
         }
 
         function exportPhraseDictionary() {
-            if (Object.keys(phraseDictionary).length === 0) {
+            if (phraseList.length === 0) {
                 showToast("目前辭庫是空的，沒有資料可以匯出喔！", "error");
                 return;
             }
@@ -1617,12 +1592,10 @@
                 finalContent += `# Rime user dictionary\n#@/db_name\tcustom\n#@/db_type\tuserdb\n#@/rime_version\t1.0\n`;
             }
             
-            for (const [code, words] of Object.entries(phraseDictionary)) {
-                for (const word of words) {
-                    const extra = phraseExtraInfo[`${code}|||${word}`] || 'c=1 d=1 t=1';
-                    finalContent += `${code}\t${word}\t${extra}\n`;
-                }
-            }
+            phraseList.forEach(item => {
+                const extra = item.extra || 'c=1 d=1 t=1';
+                finalContent += `${item.code} \t${item.word}\t${extra}\n`;
+            });
             
             const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
