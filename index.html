@@ -314,7 +314,7 @@
                             <label class="block text-slate-600 font-bold mb-2">2. 對應的按鍵碼：</label>
                             <input type="text" id="input-add-code" placeholder="例如：ab" class="whiteboard-input w-full font-mono text-xl text-marker-blue font-bold">
                         </div>
-                        <button id="btn-add-new-root" class="marker-btn bg-marker-red text-white py-4 mt-4 font-bold text-xl">
+                        <button id="btn-add-new-root" class="marker-btn bg-marker-red text-white py-4 mt-4 font-bold text-xl cursor-pointer">
                             <i class="fa-solid fa-plus mr-2"></i>存入字典白板
                         </button>
                     </div>
@@ -401,12 +401,16 @@
                         <div>
                             <label class="block text-slate-600 font-bold mb-2">1. 自訂辭庫內容 (短語/詞彙)：</label>
                             <input type="text" id="input-add-phrase-word" placeholder="例如：中華民國" class="whiteboard-input w-full text-xl font-bold">
+                            <!-- 新增防呆提示 -->
+                            <p id="add-phrase-warning" class="text-marker-red font-bold text-sm mt-2 hidden">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>此辭庫內容已存在！對應的按鍵碼為：<span id="add-phrase-exist-code" class="font-mono bg-red-50 px-1 rounded text-lg ml-1"></span>
+                            </p>
                         </div>
                         <div>
                             <label class="block text-slate-600 font-bold mb-2">2. 對應的按鍵碼：</label>
                             <input type="text" id="input-add-phrase-code" placeholder="例如：zhmg" class="whiteboard-input w-full font-mono text-xl text-marker-purple font-bold">
                         </div>
-                        <button id="btn-add-new-phrase" class="marker-btn bg-marker-purple text-white py-4 mt-4 font-bold text-xl">
+                        <button id="btn-add-new-phrase" class="marker-btn bg-marker-purple text-white py-4 mt-4 font-bold text-xl cursor-pointer transition-colors duration-200">
                             <i class="fa-solid fa-plus mr-2"></i>存入辭庫白板
                         </button>
                     </div>
@@ -481,6 +485,21 @@
             </div>
         </div>
     </div>
+    
+    <!-- 模態框 (辭庫刪除確認) -->
+    <div id="modal-phrase-delete-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200 opacity-0">
+        <div class="whiteboard-panel w-full max-w-sm p-8 transform transition-transform duration-200 scale-95" id="modal-phrase-delete-content">
+            <h3 class="text-2xl font-bold text-marker-black mb-4 border-b-2 border-dashed pb-2 inline-block"><i class="fa-solid fa-trash-can text-marker-red mr-2"></i>刪除辭庫</h3>
+            <p class="text-slate-600 mb-6 font-bold text-lg">
+                確定要刪除辭庫「<span id="modal-delete-phrase-word" class="text-marker-blue text-2xl"></span>」嗎？<br>
+                <span class="text-sm text-marker-red mt-2 inline-block">※ 刪除後將無法復原</span>
+            </p>
+            <div class="flex gap-3 justify-end">
+                <button id="btn-phrase-delete-cancel" class="marker-btn px-6 py-2 bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">取消</button>
+                <button id="btn-phrase-delete-confirm" class="marker-btn px-6 py-2 bg-marker-red text-white font-bold hover:bg-red-700">確定刪除</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
@@ -527,6 +546,9 @@
         
         let tempEditWord = "";
         let tempEditOldCode = "";
+        
+        let tempDeleteWord = "";
+        let tempDeleteCode = "";
 
         const views = {
             init: document.getElementById('view-init'),
@@ -853,7 +875,6 @@
                 if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在覆蓋並同步辭庫...";
                 if(document.getElementById('sync-progress-bar')) document.getElementById('sync-progress-bar').style.width = "50%";
                 
-                // 完全以使用者上傳的檔案為基準，覆蓋記憶體，並保證順序！
                 phraseList = [...filePhraseList];
 
                 if(document.getElementById('sync-status-text')) document.getElementById('sync-status-text').textContent = "正在上傳辭庫至資料庫...";
@@ -905,7 +926,6 @@
                 if (data.items) {
                     allItems = allItems.concat(data.items);
                 } else if (data.entries) {
-                    // 相容舊版本的資料庫結構
                     for (const [code, items] of Object.entries(data.entries)) {
                         items.forEach(item => {
                             if (typeof item === 'string') {
@@ -950,7 +970,6 @@
                 await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'metadata', 'phrase_info'), { headers: phraseHeaders });
             }
             
-            // 清理舊的 Chunk 避免殘留
             try {
                 const phraseChunksRef = collection(db, 'artifacts', appId, 'users', userId, 'phrase_chunks');
                 const existingChunks = await getDocs(phraseChunksRef);
@@ -1357,8 +1376,49 @@
         }
 
         // =======================
-        // 辭庫：搜尋與管理模組 (陣列排序版)
+        // 辭庫：搜尋與防呆管理模組 (陣列排序版)
         // =======================
+        function checkDuplicatePhrase() {
+            const wordInput = document.getElementById('input-add-phrase-word');
+            const codeInput = document.getElementById('input-add-phrase-code');
+            const warningEl = document.getElementById('add-phrase-warning');
+            const existCodeEl = document.getElementById('add-phrase-exist-code');
+            const btnAdd = document.getElementById('btn-add-new-phrase');
+
+            if (!wordInput) return;
+            const word = wordInput.value.trim();
+
+            if (!word) {
+                warningEl?.classList.add('hidden');
+                if (btnAdd) {
+                    btnAdd.disabled = false;
+                    btnAdd.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                    btnAdd.classList.add('bg-marker-purple', 'cursor-pointer');
+                }
+                return;
+            }
+
+            const existingItem = phraseList.find(item => item.word === word);
+            if (existingItem) {
+                if (existCodeEl) existCodeEl.textContent = existingItem.code;
+                warningEl?.classList.remove('hidden');
+                if (codeInput) codeInput.value = existingItem.code;
+                
+                if (btnAdd) {
+                    btnAdd.disabled = true;
+                    btnAdd.classList.remove('bg-marker-purple', 'cursor-pointer');
+                    btnAdd.classList.add('bg-slate-400', 'cursor-not-allowed');
+                }
+            } else {
+                warningEl?.classList.add('hidden');
+                if (btnAdd) {
+                    btnAdd.disabled = false;
+                    btnAdd.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                    btnAdd.classList.add('bg-marker-purple', 'cursor-pointer');
+                }
+            }
+        }
+
         function switchPhraseTab(tabName) {
             const editBtn = document.getElementById('tab-edit-phrase');
             const addBtn = document.getElementById('tab-add-phrase');
@@ -1384,6 +1444,7 @@
                 addBtn?.classList.replace('bg-white', 'bg-marker-purple');
                 addBtn?.classList.replace('text-marker-black', 'text-white');
                 addContent?.classList.remove('hidden-view');
+                checkDuplicatePhrase();
             } else if (tabName === 'upload') {
                 uploadBtn?.classList.replace('bg-white', 'bg-marker-purple');
                 uploadBtn?.classList.replace('text-marker-black', 'text-white');
@@ -1471,7 +1532,7 @@
                     const btnDelete = document.createElement('button');
                     btnDelete.className = "px-3 py-1 bg-white border-2 border-slate-300 rounded text-marker-black hover:border-marker-red hover:text-marker-red font-bold text-sm transition-colors";
                     btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> 刪除`;
-                    btnDelete.addEventListener('click', () => deletePhrase(item.word, item.code));
+                    btnDelete.addEventListener('click', () => openDeletePhraseModal(item.word, item.code));
                     
                     rightDiv.appendChild(btnEdit);
                     rightDiv.appendChild(btnDelete);
@@ -1544,16 +1605,39 @@
             });
         }
 
-        function deletePhrase(word, code) {
-            if(confirm(`確定要刪除辭庫「${word}」(按鍵碼：${code}) 嗎？\n刪除後將無法復原。`)) {
-                phraseList = phraseList.filter(item => !(item.code === code && item.word === word));
-                
-                savePhraseToCloud().then(() => {
-                    showToast("已成功刪除該筆辭庫資料！", "success");
-                    renderPhraseList(); 
-                    updateTotalCount();
-                });
-            }
+        function openDeletePhraseModal(word, code) {
+            tempDeleteWord = word;
+            tempDeleteCode = code;
+            if(document.getElementById('modal-delete-phrase-word')) document.getElementById('modal-delete-phrase-word').textContent = word;
+            
+            const overlay = document.getElementById('modal-phrase-delete-overlay');
+            const content = document.getElementById('modal-phrase-delete-content');
+            overlay?.classList.remove('hidden');
+            if(overlay) void overlay.offsetWidth;
+            overlay?.classList.replace('opacity-0', 'opacity-100');
+            content?.classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeDeletePhraseModal() {
+            const overlay = document.getElementById('modal-phrase-delete-overlay');
+            const content = document.getElementById('modal-phrase-delete-content');
+            overlay?.classList.replace('opacity-100', 'opacity-0');
+            content?.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => overlay?.classList.add('hidden'), 200);
+        }
+
+        function confirmDeletePhrase() {
+            const word = tempDeleteWord;
+            const code = tempDeleteCode;
+            
+            phraseList = phraseList.filter(item => !(item.code === code && item.word === word));
+            
+            savePhraseToCloud().then(() => {
+                showToast("已成功刪除該筆辭庫資料！", "success");
+                renderPhraseList(); 
+                updateTotalCount();
+                closeDeletePhraseModal();
+            });
         }
 
         function addNewPhrase() {
@@ -1572,6 +1656,8 @@
 
             if(inputWord) inputWord.value = '';
             if(inputCode) inputCode.value = '';
+
+            checkDuplicatePhrase();
 
             savePhraseToCloud().then(() => {
                 showToast(`新增成功！辭庫「${word}」已存入白板。`, "success");
@@ -1594,7 +1680,7 @@
             
             phraseList.forEach(item => {
                 const extra = item.extra || 'c=1 d=1 t=1';
-                finalContent += `${item.code} \t${item.word}\t${extra}\n`;
+                finalContent += `${item.code}\t${item.word}\t${extra}\n`;
             });
             
             const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
@@ -1657,6 +1743,11 @@
         document.getElementById('btn-phrase-modal-cancel')?.addEventListener('click', closePhraseModal);
         document.getElementById('btn-phrase-modal-confirm')?.addEventListener('click', confirmEditPhrase);
         
+        document.getElementById('btn-phrase-delete-cancel')?.addEventListener('click', closeDeletePhraseModal);
+        document.getElementById('btn-phrase-delete-confirm')?.addEventListener('click', confirmDeletePhrase);
+        
+        document.getElementById('input-add-phrase-word')?.addEventListener('input', checkDuplicatePhrase);
+
         document.getElementById('input-edit-root')?.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') findRootsForWord(); 
         });
