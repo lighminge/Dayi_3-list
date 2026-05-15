@@ -309,12 +309,16 @@
                         <div>
                             <label class="block text-slate-600 font-bold mb-2">1. 要新增的中文字：</label>
                             <input type="text" id="input-add-word" placeholder="例如：哈" class="whiteboard-input w-full text-xl font-bold">
+                            <!-- 新增字根防呆提示 -->
+                            <p id="add-root-warning" class="text-marker-red font-bold text-sm mt-2 hidden">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>此中文字已存在於字典中！對應的按鍵碼為：<span id="add-root-exist-code" class="font-mono bg-red-50 px-1 rounded text-lg ml-1"></span>
+                            </p>
                         </div>
                         <div>
                             <label class="block text-slate-600 font-bold mb-2">2. 對應的按鍵碼：</label>
                             <input type="text" id="input-add-code" placeholder="例如：ab" class="whiteboard-input w-full font-mono text-xl text-marker-blue font-bold">
                         </div>
-                        <button id="btn-add-new-root" class="marker-btn bg-marker-red text-white py-4 mt-4 font-bold text-xl cursor-pointer">
+                        <button id="btn-add-new-root" class="marker-btn bg-marker-red text-white py-4 mt-4 font-bold text-xl cursor-pointer transition-colors duration-200">
                             <i class="fa-solid fa-plus mr-2"></i>存入字典白板
                         </button>
                     </div>
@@ -1233,6 +1237,7 @@
                 if(editBtn) editBtn.className = "marker-btn bg-white text-marker-black px-6 py-2 font-bold flex-1 md:flex-none";
                 addContent?.classList.remove('hidden-view');
                 editContent?.classList.add('hidden-view');
+                checkDuplicateRoot(); // 切換到新增時觸發檢查
             }
         }
 
@@ -1355,6 +1360,55 @@
             });
         }
 
+        // 新增字根的即時防呆檢查函數
+        function checkDuplicateRoot() {
+            const wordInput = document.getElementById('input-add-word');
+            const codeInput = document.getElementById('input-add-code');
+            const warningEl = document.getElementById('add-root-warning');
+            const existCodeEl = document.getElementById('add-root-exist-code');
+            const btnAdd = document.getElementById('btn-add-new-root');
+
+            if (!wordInput) return;
+            const word = wordInput.value.trim();
+
+            if (!word) {
+                warningEl?.classList.add('hidden');
+                if (btnAdd) {
+                    btnAdd.disabled = false;
+                    btnAdd.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                    btnAdd.classList.add('bg-marker-red', 'cursor-pointer');
+                }
+                return;
+            }
+
+            let foundCode = null;
+            for (const [code, words] of Object.entries(memoryDictionary)) {
+                if (words.includes(word)) {
+                    foundCode = code;
+                    break;
+                }
+            }
+
+            if (foundCode) {
+                if (existCodeEl) existCodeEl.textContent = foundCode;
+                warningEl?.classList.remove('hidden');
+                if (codeInput) codeInput.value = foundCode;
+                
+                if (btnAdd) {
+                    btnAdd.disabled = true;
+                    btnAdd.classList.remove('bg-marker-red', 'cursor-pointer');
+                    btnAdd.classList.add('bg-slate-400', 'cursor-not-allowed');
+                }
+            } else {
+                warningEl?.classList.add('hidden');
+                if (btnAdd) {
+                    btnAdd.disabled = false;
+                    btnAdd.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                    btnAdd.classList.add('bg-marker-red', 'cursor-pointer');
+                }
+            }
+        }
+
         function addNewRoot() {
             const inputAddWord = document.getElementById('input-add-word');
             const inputAddCode = document.getElementById('input-add-code');
@@ -1368,6 +1422,8 @@
             memoryDictionary[code].push(word);
             if(inputAddWord) inputAddWord.value = '';
             if(inputAddCode) inputAddCode.value = '';
+            
+            checkDuplicateRoot(); // 存入後重置防呆狀態
 
             saveToCloud().then(() => {
                 showToast(`新增成功！「${word}」(字根：${code}) 已存入主字典。`, "success");
@@ -1747,6 +1803,7 @@
         document.getElementById('btn-phrase-delete-confirm')?.addEventListener('click', confirmDeletePhrase);
         
         document.getElementById('input-add-phrase-word')?.addEventListener('input', checkDuplicatePhrase);
+        document.getElementById('input-add-word')?.addEventListener('input', checkDuplicateRoot);
 
         document.getElementById('input-edit-root')?.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') findRootsForWord(); 
