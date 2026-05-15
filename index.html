@@ -309,10 +309,14 @@
                         <div>
                             <label class="block text-slate-600 font-bold mb-2">1. 要新增的中文字：</label>
                             <input type="text" id="input-add-word" placeholder="例如：哈" class="whiteboard-input w-full text-xl font-bold">
-                            <!-- 新增字根防呆提示 -->
-                            <p id="add-root-warning" class="text-marker-red font-bold text-sm mt-2 hidden">
-                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>此中文字已存在於字典中！對應的按鍵碼為：<span id="add-root-exist-code" class="font-mono bg-red-50 px-1 rounded text-lg ml-1"></span>
-                            </p>
+                            <!-- 已有字根清單顯示 -->
+                            <div id="add-root-info-box" class="mt-3 hidden bg-blue-50 border border-blue-200 rounded-lg p-4 transition-all duration-300">
+                                <p class="text-marker-blue font-bold text-sm mb-2">
+                                    <i class="fa-solid fa-circle-info mr-1"></i>此中文字目前已有的按鍵碼：
+                                </p>
+                                <ul id="add-root-exist-list" class="flex flex-col gap-2 max-h-32 overflow-y-auto pr-2">
+                                </ul>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-slate-600 font-bold mb-2">2. 對應的按鍵碼：</label>
@@ -1360,52 +1364,51 @@
             });
         }
 
-        // 新增字根的即時防呆檢查函數
+        // 新增字根的即時提示檢查函數
         function checkDuplicateRoot() {
             const wordInput = document.getElementById('input-add-word');
-            const codeInput = document.getElementById('input-add-code');
-            const warningEl = document.getElementById('add-root-warning');
-            const existCodeEl = document.getElementById('add-root-exist-code');
+            const infoBox = document.getElementById('add-root-info-box');
+            const existList = document.getElementById('add-root-exist-list');
             const btnAdd = document.getElementById('btn-add-new-root');
 
             if (!wordInput) return;
             const word = wordInput.value.trim();
 
             if (!word) {
-                warningEl?.classList.add('hidden');
-                if (btnAdd) {
-                    btnAdd.disabled = false;
-                    btnAdd.classList.remove('bg-slate-400', 'cursor-not-allowed');
-                    btnAdd.classList.add('bg-marker-red', 'cursor-pointer');
-                }
+                infoBox?.classList.add('hidden');
                 return;
             }
 
-            let foundCode = null;
+            let foundCodes = [];
             for (const [code, words] of Object.entries(memoryDictionary)) {
                 if (words.includes(word)) {
-                    foundCode = code;
-                    break;
+                    foundCodes.push(code);
                 }
             }
 
-            if (foundCode) {
-                if (existCodeEl) existCodeEl.textContent = foundCode;
-                warningEl?.classList.remove('hidden');
-                if (codeInput) codeInput.value = foundCode;
-                
-                if (btnAdd) {
-                    btnAdd.disabled = true;
-                    btnAdd.classList.remove('bg-marker-red', 'cursor-pointer');
-                    btnAdd.classList.add('bg-slate-400', 'cursor-not-allowed');
+            if (foundCodes.length > 0) {
+                if (existList) {
+                    existList.innerHTML = '';
+                    foundCodes.forEach(code => {
+                        const li = document.createElement('li');
+                        li.className = "flex items-center text-slate-700 bg-white px-3 py-2 rounded shadow-sm border border-slate-200 justify-between";
+                        li.innerHTML = `
+                            <span class="font-bold">文字：${word}</span>
+                            <span class="font-mono text-marker-blue font-bold text-lg bg-blue-100 px-2 py-0.5 rounded">${code}</span>
+                        `;
+                        existList.appendChild(li);
+                    });
                 }
-            } else {
-                warningEl?.classList.add('hidden');
+                infoBox?.classList.remove('hidden');
+                
+                // 不鎖定按鈕，允許同一個字新增多種按鍵碼
                 if (btnAdd) {
                     btnAdd.disabled = false;
                     btnAdd.classList.remove('bg-slate-400', 'cursor-not-allowed');
                     btnAdd.classList.add('bg-marker-red', 'cursor-pointer');
                 }
+            } else {
+                infoBox?.classList.add('hidden');
             }
         }
 
@@ -1420,10 +1423,11 @@
             if (memoryDictionary[code].includes(word)) { showToast(`按鍵碼 [${code}] 裡面已經有「${word}」這個字了！`, "error"); return; }
 
             memoryDictionary[code].push(word);
-            if(inputAddWord) inputAddWord.value = '';
+            
+            // 不清空字元，保留字元以繼續查看或新增其他碼
             if(inputAddCode) inputAddCode.value = '';
             
-            checkDuplicateRoot(); // 存入後重置防呆狀態
+            checkDuplicateRoot(); // 存入後即時更新下方的既有字根清單
 
             saveToCloud().then(() => {
                 showToast(`新增成功！「${word}」(字根：${code}) 已存入主字典。`, "success");
