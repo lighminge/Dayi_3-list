@@ -1733,6 +1733,7 @@
             
             let finalContent = "";
             if (phraseHeaders.length > 0) {
+                // 還原為 Unix 標準換行符號 \n
                 finalContent += phraseHeaders.join('\n') + '\n';
             } else {
                 finalContent += `# Rime user dictionary\n#@/db_name\tcustom\n#@/db_type\tuserdb\n#@/rime_version\t1.0\n`;
@@ -1740,17 +1741,18 @@
             
             phraseList.forEach(item => {
                 const extra = item.extra || 'c=1 d=1 t=1';
-                // 修正格式：按鍵碼 + 空白 + TAB + 文字 + TAB + 記憶屬性
+                // 格式：按鍵碼 + 空白 + TAB + 文字 + TAB + 記憶屬性，並使用 \n 結尾
                 finalContent += `${item.code} \t${item.word}\t${extra}\n`;
             });
             
+            // 移除 \uFEFF (BOM)，還原為最純淨的 UTF-8 編碼
             const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             
             let exportName = originalPhraseFileName || "custom_phrase";
-            exportName = exportName.replace(/\.(yaml|txt|dict|userdb\.txt)$/i, '');
+            exportName = exportName.replace(/(\.userdb\.txt|\.txt|\.yaml|\.dict)$/i, '');
             a.download = `${exportName}.userdb.txt`;
             
             document.body.appendChild(a);
